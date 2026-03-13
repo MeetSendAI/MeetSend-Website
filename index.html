@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeetSend AI — Turn Event Conversations Into Revenue</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f9f6f0;
+  --ink: #0f0e0c;
+  --muted: #7a7570;
+  --border: #e8e3db;
+  --surface: #ffffff;
+  --accent: #c8f542;
+  --accent-dark: #8ab520;
+  --dark: #0f0e0c;
+  --dark2: #1a1916;
+  --tag: #e8f5c0;
+  --tag-text: #4a6010;
+  --radius: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--ink);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease, background 0.2s ease;
+  transform: translate(-50%, -50%);
+}
+
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.08s ease, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+  transform: translate(-50%, -50%);
+  opacity: 0.4;
+}
+
+body:has(a:hover) .cursor, body:has(button:hover) .cursor { transform: translate(-50%, -50%) scale(2); background: var(--accent); }
+body:has(a:hover) .cursor-ring, body:has(button:hover) .cursor-ring { width: 60px; height: 60px; opacity: 0.2; }
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(249,246,240,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+
+nav.scrolled { border-bottom-color: var(--border); }
+
+.nav-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+
+.nav-logo:hover { opacity: 0.8; }
+
+.logo-dot {
+  display: none;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,245,66,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(200,245,66,0); }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.nav-links a:hover { color: var(--ink); }
+
+.nav-cta {
+  background: var(--ink) !important;
+  color: var(--bg) !important;
+  padding: 10px 22px !important;
+  border-radius: 100px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  transition: background 0.2s, transform 0.15s !important;
+}
+
+.nav-cta:hover { background: var(--dark2) !important; transform: translateY(-1px); }
+
+.nav-mobile { display: none; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 60% 20%, rgba(200,245,66,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(200,245,66,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.4;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+.hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--tag);
+  color: var(--tag-text);
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero-badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-dark);
+  animation: pulse 2s infinite;
+}
+
+h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(44px, 6.5vw, 80px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+h1 .highlight {
+  position: relative;
+  display: inline-block;
+}
+
+h1 .highlight::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0; right: 0;
+  height: 8px;
+  background: var(--accent);
+  z-index: -1;
+  border-radius: 2px;
+}
+
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 560px;
+  margin-bottom: 48px;
+  font-weight: 300;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 16px 32px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: none;
+  transition: transform 0.2s, background 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary:hover { transform: translateY(-2px); background: var(--dark2); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  padding: 15px 28px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: none;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+.hero-social {
+  margin-top: 80px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+
+.hero-social-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-logos {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hero-logo-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+/* TICKER */
+.ticker-wrap {
+  background: var(--ink);
+  padding: 14px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker {
+  display: inline-flex;
+  gap: 0;
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 32px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(249,246,240,0.5);
+  letter-spacing: 0.02em;
+}
+
+.ticker-item strong { color: var(--accent); font-weight: 600; font-style: italic; }
+.ticker-sep { color: var(--accent); opacity: 0.6; }
+
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* SECTIONS SHARED */
+section { padding: 120px 40px; }
+
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.section-label::before {
+  content: '';
+  width: 20px; height: 1.5px;
+  background: var(--accent-dark);
+}
+
+h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+
+h2 em { font-style: italic; font-weight: 300; color: var(--muted); }
+
+/* PROBLEM */
+#problem { background: var(--dark); color: var(--bg); }
+
+#problem .section-label { color: rgba(249,246,240,0.4); }
+#problem .section-label::before { background: var(--accent); }
+#problem h2 { color: var(--bg); }
+#problem h2 em { color: rgba(249,246,240,0.4); }
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-top: 60px;
+}
+
+.problem-stat-stack { display: flex; flex-direction: column; gap: 24px; }
+
+.stat-card {
+  background: var(--dark2);
+  border: 1px solid rgba(249,246,240,0.08);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.stat-card:hover { transform: translateY(-3px); border-color: rgba(200,245,66,0.2); }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.stat-card:hover::before { opacity: 1; }
+
+.stat-num {
+  font-family: 'Inter', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: rgba(249,246,240,0.5);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+.problem-story { display: flex; flex-direction: column; gap: 20px; }
+
+.problem-point {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+  background: rgba(249,246,240,0.03);
+  border: 1px solid rgba(249,246,240,0.06);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.problem-point:hover { background: rgba(249,246,240,0.06); }
+
+.problem-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.problem-point-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bg);
+  margin-bottom: 4px;
+}
+
+.problem-point-desc {
+  font-size: 13px;
+  color: rgba(249,246,240,0.45);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* SOLUTION */
+#solution { background: var(--bg); }
+
+.solution-flow {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.flow-step {
+  background: var(--surface);
+  padding: 40px 32px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.flow-step:hover { background: #fefcf8; }
+
+.flow-num {
+  font-family: 'Inter', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  color: var(--border);
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+  transition: color 0.2s;
+}
+
+.flow-step:hover .flow-num { color: var(--accent); }
+
+.flow-icon { font-size: 28px; margin-bottom: 16px; }
+
+.flow-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.flow-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.flow-tag {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 11px;
+  background: var(--tag);
+  color: var(--tag-text);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* FEATURES */
+#features { background: var(--bg); padding-top: 0; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 60px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
+
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.08); border-color: transparent; }
+.feature-card:hover::after { transform: scaleX(1); }
+
+.feature-card.wide { grid-column: span 2; }
+
+.feature-emoji { font-size: 32px; margin-bottom: 20px; }
+
+.feature-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.feature-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--muted);
+  list-style: none;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.feature-list li::before {
+  content: '→';
+  color: var(--accent-dark);
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* PRICING */
+#pricing { background: var(--dark); color: var(--bg); }
+#pricing .section-label { color: rgba(249,246,240,0.4); }
+#pricing .section-label::before { background: var(--accent); }
+#pricing h2 { color: var(--bg); }
+#pricing h2 em { color: rgba(249,246,240,0.4); }
+
+.pricing-sub {
+  font-size: 16px;
+  color: rgba(249,246,240,0.5);
+  margin-bottom: 60px;
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.price-card {
+  background: var(--dark2);
+  border: 1px solid rgba(249,246,240,0.08);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  position: relative;
+  transition: transform 0.25s, border-color 0.25s;
+}
+
+.price-card:hover { transform: translateY(-4px); }
+
+.price-card.featured {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.03);
+}
+
+.price-card.featured:hover { transform: scale(1.03) translateY(-4px); }
+
+.price-badge {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--accent);
+  font-size: 10px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.price-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--bg);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.price-card.featured .price-name { color: var(--ink); }
+
+.price-amount {
+  font-family: 'Inter', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--bg);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 16px 0 4px;
+}
+
+.price-card.featured .price-amount { color: var(--ink); }
+
+.price-period {
+  font-size: 13px;
+  color: rgba(249,246,240,0.4);
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+.price-card.featured .price-period { color: rgba(15,14,12,0.5); }
+
+.price-divider {
+  height: 1px;
+  background: rgba(249,246,240,0.08);
+  margin-bottom: 24px;
+}
+
+.price-card.featured .price-divider { background: rgba(15,14,12,0.1); }
+
+.price-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+
+.price-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: rgba(249,246,240,0.65);
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+.price-card.featured .price-feature { color: rgba(15,14,12,0.7); }
+
+.price-check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(200,245,66,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.price-card.featured .price-check { background: rgba(15,14,12,0.1); }
+
+.btn-plan {
+  width: 100%;
+  padding: 14px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: none;
+  border: none;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.btn-plan-outline {
+  background: transparent;
+  border: 1.5px solid rgba(249,246,240,0.15);
+  color: rgba(249,246,240,0.7);
+}
+
+.btn-plan-outline:hover { border-color: rgba(249,246,240,0.4); color: var(--bg); }
+
+.btn-plan-dark {
+  background: var(--ink);
+  color: var(--accent);
+  border: none;
+}
+
+.btn-plan-dark:hover { background: #000; }
+
+.pricing-note {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(249,246,240,0.3);
+  font-weight: 300;
+}
+
+/* WAITLIST */
+#waitlist {
+  background: var(--accent);
+  padding: 100px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#waitlist::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+#waitlist h2 {
+  color: var(--ink);
+  max-width: 700px;
+  margin: 0 auto 16px;
+}
+
+.waitlist-sub {
+  font-size: 17px;
+  color: rgba(15,14,12,0.6);
+  margin-bottom: 48px;
+  font-weight: 300;
+}
+
+.waitlist-form {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.waitlist-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 16px 24px;
+  border-radius: 100px;
+  border: 2px solid rgba(15,14,12,0.15);
+  background: rgba(255,255,255,0.6);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: none;
+}
+
+.waitlist-input::placeholder { color: rgba(15,14,12,0.4); }
+.waitlist-input:focus { border-color: var(--ink); background: rgba(255,255,255,0.9); }
+
+.btn-waitlist {
+  background: var(--ink);
+  color: var(--accent);
+  border: none;
+  padding: 16px 32px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: none;
+  transition: transform 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-waitlist:hover { transform: translateY(-2px); background: var(--dark2); }
+
+.waitlist-success {
+  display: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 16px;
+}
+
+.waitlist-count {
+  margin-top: 24px;
+  font-size: 13px;
+  color: rgba(15,14,12,0.5);
+}
+
+.waitlist-count strong { color: var(--ink); font-weight: 600; }
+
+/* CONTACT */
+#contact { background: var(--bg); }
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+  margin-top: 60px;
+}
+
+.contact-info { display: flex; flex-direction: column; gap: 32px; }
+
+.contact-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contact-icon {
+  width: 44px; height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.contact-item-title {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.contact-item-val {
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.contact-form { display: flex; flex-direction: column; gap: 16px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.form-input, .form-textarea {
+  padding: 14px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: none;
+}
+
+.form-input:focus, .form-textarea:focus { border-color: var(--ink); }
+.form-textarea { resize: vertical; min-height: 120px; }
+
+.btn-contact {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 15px 32px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: none;
+  transition: transform 0.2s;
+  align-self: flex-start;
+}
+
+.btn-contact:hover { transform: translateY(-2px); }
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  padding: 48px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-logo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--bg);
+  letter-spacing: -0.02em;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: rgba(249,246,240,0.3);
+  font-weight: 300;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: rgba(249,246,240,0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--bg); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .nav-mobile { display: block; font-size: 20px; cursor: none; background: none; border: none; }
+  section { padding: 80px 20px; }
+  .hero { padding: 100px 20px 60px; }
+  .problem-grid, .solution-flow, .features-grid, .pricing-grid, .contact-grid { grid-template-columns: 1fr; }
+  .feature-card.wide { grid-column: span 1; }
+  .pricing-grid { gap: 12px; }
+  .price-card.featured { transform: none; }
+  h1 { font-size: 44px; }
+  h2 { font-size: 36px; }
+  footer { flex-direction: column; text-align: center; }
+}
+
+/* ===== ONBOARDING POPUP ===== */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,14,12,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.popup-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.popup {
+  background: var(--surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+  transform: translateY(20px) scale(0.98);
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.popup-overlay.active .popup {
+  transform: translateY(0) scale(1);
+}
+
+.popup-header {
+  padding: 32px 36px 0;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+  border-radius: 20px 20px 0 0;
+}
+
+.popup-step-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.popup-step-dot {
+  height: 3px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.popup-step-dot.active { background: var(--ink); }
+.popup-step-dot.done { background: var(--accent-dark); }
+
+.popup-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.popup-close:hover { background: var(--bg); color: var(--ink); }
+
+.popup-body { padding: 0 36px 36px; }
+
+.popup-screen { display: none; }
+.popup-screen.active { display: block; }
+
+.popup-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.popup-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.popup-sub {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+/* Option cards */
+.popup-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.popup-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.popup-option:hover { border-color: var(--ink); background: var(--bg); }
+
+.popup-option.selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.popup-option-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}
+
+.popup-option-label {
+  font-size: 13.5px;
+  font-weight: 400;
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Textarea */
+.popup-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink);
+  resize: none;
+  outline: none;
+  min-height: 110px;
+  transition: border-color 0.2s;
+  margin-bottom: 28px;
+  background: var(--bg);
+}
+
+.popup-textarea:focus { border-color: var(--ink); background: white; }
+.popup-textarea::placeholder { color: var(--muted); }
+
+/* Nav buttons */
+.popup-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.popup-btn-next {
+  flex: 1;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 14px 24px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-btn-next:hover { background: var(--dark2); transform: translateY(-1px); }
+.popup-btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.popup-btn-back {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  padding: 13px 20px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-btn-back:hover { color: var(--ink); border-color: var(--ink); }
+
+.popup-skip {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.popup-skip:hover { color: var(--ink); }
+
+/* Success screen */
+.popup-success {
+  text-align: center;
+  padding: 20px 0 8px;
+}
+
+.popup-success-icon {
+  font-size: 52px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.popup-success-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+.popup-success-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 360px;
+  margin: 0 auto 28px;
+}
+
+.popup-success-badge {
+  display: inline-block;
+  background: var(--tag);
+  color: var(--tag-text);
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stat-source {
+  display: block;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(249,246,240,0.5);
+  line-height: 1.5;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(249,246,240,0.08);
+}
+
+/* ===== SHARE SECTION ===== */
+.popup-share-wrap {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.popup-share-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.popup-share-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.popup-share-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.popup-share-input:focus { border-color: var(--ink); }
+
+.popup-share-btn {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.popup-share-btn:hover { background: var(--dark2); }
+.popup-share-btn.copied { background: #2d7a3a; color: white; }
+
+.popup-share-or {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.popup-share-icons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.popup-share-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  transition: all 0.2s;
+  flex: 1;
+  justify-content: center;
+}
+
+.popup-share-icon-btn:hover {
+  border-color: var(--ink);
+  background: var(--bg);
+}
+
+.popup-close-final {
+  margin-top: 20px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+  width: 100%;
+}
+
+.popup-close-final:hover { color: var(--ink); }
+
+.book-call-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.book-call-btn:hover {
+  background: var(--accent);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+@media (min-width: 900px) {
+  .solution-flow { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzIwIiB6b29tQW5kUGFuPSJtYWduaWZ5IiB2aWV3Qm94PSIwIDAgMjQwIDEwNy4wNCIgaGVpZ2h0PSIxMzIiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIG1lZXQiIHZlcnNpb249IjEuMCI+PGRlZnM+PGcvPjxjbGlwUGF0aCBpZD0iZmE3ZWM4MWYwNCI+PHBhdGggZD0iTSAxNC4wNTQ2ODggNS4xNDA2MjUgTCA5NS41ODIwMzEgNS4xNDA2MjUgTCA5NS41ODIwMzEgODYuNjY3OTY5IEwgMTQuMDU0Njg4IDg2LjY2Nzk2OSBaIE0gMTQuMDU0Njg4IDUuMTQwNjI1ICIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImU0YmJiNjI4YzMiPjxwYXRoIGQ9Ik0gMC4wNTQ2ODc1IDAuMTQwNjI1IEwgODEuNTgyMDMxIDAuMTQwNjI1IEwgODEuNTgyMDMxIDgxLjY2Nzk2OSBMIDAuMDU0Njg3NSA4MS42Njc5NjkgWiBNIDAuMDU0Njg3NSAwLjE0MDYyNSAiIGNsaXAtcnVsZT0ibm9uemVybyIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSI2OWYyNjliOGE4Ij48cmVjdCB4PSIwIiB3aWR0aD0iODIiIHk9IjAiIGhlaWdodD0iODIiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iMjU4YzUxODc3MyI+PHBhdGggZD0iTSAzNiAyNyBMIDczIDI3IEwgNzMgNjUgTCAzNiA2NSBaIE0gMzYgMjcgIiBjbGlwLXJ1bGU9Im5vbnplcm8iLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iM2E3YWQ5MGYyNCI+PHBhdGggZD0iTSAyMy43MjY1NjIgNDUuODcxMDk0IEwgNTQuNzM4MjgxIDE0Ljg2MzI4MSBMIDg1Ljc0NjA5NCA0NS44NzEwOTQgTCA1NC43MzgyODEgNzYuODgyODEyIFogTSAyMy43MjY1NjIgNDUuODcxMDk0ICIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImY0N2MyYzEwYjgiPjxwYXRoIGQ9Ik0gMjMuNzI2NTYyIDQ1Ljg3MTA5NCBMIDU0LjczODI4MSAxNC44NjMyODEgTCA4NS43NDYwOTQgNDUuODcxMDk0IEwgNTQuNzM4MjgxIDc2Ljg4MjgxMiBaIE0gMjMuNzI2NTYyIDQ1Ljg3MTA5NCAiIGNsaXAtcnVsZT0ibm9uemVybyIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSJjNGY4NzI0ZTBmIj48cGF0aCBkPSJNIDIzLjcyNjU2MiA0NS44NzEwOTQgTCA1NC43MzgyODEgMTQuODYzMjgxIEwgODUuNzQ2MDk0IDQ1Ljg3MTA5NCBMIDU0LjczODI4MSA3Ni44ODI4MTIgWiBNIDIzLjcyNjU2MiA0NS44NzEwOTQgIiBjbGlwLXJ1bGU9Im5vbnplcm8iLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjZmE3ZWM4MWYwNCkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsIDAsIDAsIDEsIDE0LCA1KSI+PGcgY2xpcC1wYXRoPSJ1cmwoIzY5ZjI2OWI4YTgpIj48ZyBjbGlwLXBhdGg9InVybCgjZTRiYmI2MjhjMykiPjxwYXRoIGZpbGw9IiNjMWZmNzIiIGQ9Ik0gMC4wNTQ2ODc1IDAuMTQwNjI1IEwgODEuNTgyMDMxIDAuMTQwNjI1IEwgODEuNTgyMDMxIDgxLjY2Nzk2OSBMIDAuMDU0Njg3NSA4MS42Njc5NjkgWiBNIDAuMDU0Njg3NSAwLjE0MDYyNSAiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9nPjwvZz48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCMyNThjNTE4NzczKSI+PGcgY2xpcC1wYXRoPSJ1cmwoIzNhN2FkOTBmMjQpIj48ZyBjbGlwLXBhdGg9InVybCgjZjQ3YzJjMTBiOCkiPjxnIGNsaXAtcGF0aD0idXJsKCNjNGY4NzI0ZTBmKSI+PHBhdGggZmlsbD0iIzAwMDAwMCIgZD0iTSA3Mi43NzM0MzggMzIuOTMzNTk0IEMgNjQuNjkxNDA2IDQ3LjY3OTY4OCA2OS4yMDMxMjUgNTUuNjAxNTYyIDcyLjYxMzI4MSA1OS4wMDc4MTIgTCA2Ny4yOTI5NjkgNjQuMzI4MTI1IEMgNjQuNTUwNzgxIDYxLjU4NTkzOCA1OS44NDc2NTYgNTUuMjczNDM4IDYwLjg5MDYyNSA0NS4wMjczNDQgTCA0MS44OTg0MzggNjQuMDE5NTMxIEwgMzYuNTg5ODQ0IDU4LjcxMDkzOCBMIDU1LjU4MjAzMSAzOS43MTg3NSBDIDQ1LjMzNTkzOCA0MC43NjE3MTkgMzkuMDIzNDM4IDM2LjA1ODU5NCAzNi4yODEyNSAzMy4zMTY0MDYgTCA0MS42MDE1NjIgMjcuOTk2MDk0IEMgNDUuMDA3ODEyIDMxLjQwNjI1IDUyLjkyOTY4OCAzNS45MTc5NjkgNjcuNjc1NzgxIDI3LjgzNTkzOCBaIE0gNzIuNzczNDM4IDMyLjkzMzU5NCAiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9nPjwvZz48L2c+PC9nPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA4Ljk5MDM5NCwgNDAuNTcxNjEpIj48Zz48cGF0aCBkPSJNIDMuNTYyNSAtMjcuNzUgTCA4LjkyMTg3NSAtMjcuNzUgTCAxOC40Mzc1IC0xNS44NTkzNzUgTCAyNy45NTMxMjUgLTI3Ljc1IEwgMzMuMjk2ODc1IC0yNy43NSBMIDMzLjI5Njg3NSAwIEwgMjcuMzU5Mzc1IDAgTCAyNy4zNTkzNzUgLTE4LjIzNDM3NSBMIDE4LjQzNzUgLTcuMTQwNjI1IEwgOS41MTU2MjUgLTE4LjIzNDM3NSBMIDkuNTE1NjI1IDAgTCAzLjU2MjUgMCBaIE0gMy41NjI1IC0yNy43NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjMDAwMDAwIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NS44NTYwNjcsIDQwLjU3MTYxKSI+PGc+PHBhdGggZD0iTSAzLjU2MjUgLTI3Ljc1IEwgMjQuMTg3NSAtMjcuNzUgTCAyNC4xODc1IC0yMi4yMDMxMjUgTCA5LjUxNTYyNSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTE2Ljg0Mzc1IEwgMjEuMDE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC0xMS41IEwgOS41MTU2MjUgLTUuNTQ2ODc1IEwgMjQuNTc4MTI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAwIEwgMy41NjI1IDAgWiBNIDMuNTYyNSAtMjcuNzUgIi8+PC9nPjwvZz48L2c+PGcgZmlsbD0iIzAwMDAwMCIgZmlsbC1vcGFjaXR5PSIxIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNzIuMjE3MDA3LCA0MC41NzE2MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDI0LjE4NzUgLTI3Ljc1IEwgMjQuMTg3NSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTYuODQzNzUgTCAyMS4wMTU2MjUgLTExLjUgTCA5LjUxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAtNS41NDY4NzUgTCAyNC41NzgxMjUgMCBMIDMuNTYyNSAwIFogTSAzLjU2MjUgLTI3Ljc1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTk4LjU3Nzk0OCwgNDAuNTcxNjEpIj48Zz48cGF0aCBkPSJNIDguNzE4NzUgLTIyLjIwMzEyNSBMIDAuNzk2ODc1IC0yMi4yMDMxMjUgTCAwLjc5Njg3NSAtMjcuNzUgTCAyMi41OTM3NSAtMjcuNzUgTCAyMi41OTM3NSAtMjIuMjAzMTI1IEwgMTQuNjcxODc1IC0yMi4yMDMxMjUgTCAxNC42NzE4NzUgMCBMIDguNzE4NzUgMCBaIE0gOC43MTg3NSAtMjIuMjAzMTI1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA5LjY4NzI2OSwgODEuMzM1MDUxKSI+PGc+PHBhdGggZD0iTSAxMS41IDAuNTkzNzUgQyA5LjY5NTMxMiAwLjU5Mzc1IDguMTI4OTA2IDAuMzY3MTg4IDYuNzk2ODc1IC0wLjA3ODEyNSBDIDUuNDYwOTM4IC0wLjUyMzQzOCA0LjM0NzY1NiAtMS4wMjM0MzggMy40NTMxMjUgLTEuNTc4MTI1IEMgMi4zOTA2MjUgLTIuMjEwOTM4IDEuNTAzOTA2IC0yLjk0MTQwNiAwLjc5Njg3NSAtMy43NjU2MjUgTCA0Ljc1IC03LjczNDM3NSBDIDUuMjI2NTYyIC03LjE3MTg3NSA1LjgwMDc4MSAtNi42NjQwNjIgNi40Njg3NSAtNi4yMTg3NSBDIDcuMDE5NTMxIC01Ljg1MTU2MiA3LjY5NTMxMiAtNS41MTU2MjUgOC41IC01LjIwMzEyNSBDIDkuMzEyNSAtNC44OTg0MzggMTAuMjQyMTg4IC00Ljc1IDExLjI5Njg3NSAtNC43NSBDIDEyLjg3ODkwNiAtNC43NSAxNC4wMzUxNTYgLTUuMDUwNzgxIDE0Ljc2NTYyNSAtNS42NTYyNSBDIDE1LjQ5MjE4OCAtNi4yNjk1MzEgMTUuODU5Mzc1IC03LjAyMzQzOCAxNS44NTkzNzUgLTcuOTIxODc1IEMgMTUuODU5Mzc1IC04LjcyMjY1NiAxNS41MTU2MjUgLTkuMzUxNTYyIDE0LjgyODEyNSAtOS44MTI1IEMgMTQuMTQwNjI1IC0xMC4yNjk1MzEgMTMuMjgxMjUgLTEwLjY3OTY4OCAxMi4yNSAtMTEuMDQ2ODc1IEMgMTEuMjE4NzUgLTExLjQyMTg3NSAxMC4xMDkzNzUgLTExLjgwNDY4OCA4LjkyMTg3NSAtMTIuMjAzMTI1IEMgNy43MzQzNzUgLTEyLjU5NzY1NiA2LjYyNSAtMTMuMTE3MTg4IDUuNTkzNzUgLTEzLjc2NTYyNSBDIDQuNTYyNSAtMTQuNDIxODc1IDMuNzAzMTI1IC0xNS4yNTM5MDYgMy4wMTU2MjUgLTE2LjI2NTYyNSBDIDIuMzI4MTI1IC0xNy4yODUxNTYgMS45ODQzNzUgLTE4LjYwMTU2MiAxLjk4NDM3NSAtMjAuMjE4NzUgQyAxLjk4NDM3NSAtMjEuMzAwNzgxIDIuMjEwOTM4IC0yMi4zMzU5MzggMi42NzE4NzUgLTIzLjMyODEyNSBDIDMuMTQwNjI1IC0yNC4zMTY0MDYgMy44MDA3ODEgLTI1LjE3OTY4OCA0LjY1NjI1IC0yNS45MjE4NzUgQyA1LjUxOTUzMSAtMjYuNjYwMTU2IDYuNTc4MTI1IC0yNy4yNSA3LjgyODEyNSAtMjcuNjg3NSBDIDkuMDg1OTM4IC0yOC4xMjUgMTAuNTA3ODEyIC0yOC4zNDM3NSAxMi4wOTM3NSAtMjguMzQzNzUgQyAxMy42MjUgLTI4LjM0Mzc1IDE0Ljk3NjU2MiAtMjguMTQ0NTMxIDE2LjE1NjI1IC0yNy43NSBDIDE3LjMzMjAzMSAtMjcuMzUxNTYyIDE4LjMwMDc4MSAtMjYuOTE0MDYyIDE5LjA2MjUgLTI2LjQzNzUgQyAxOS45Njg3NSAtMjUuODgyODEyIDIwLjc1IC0yNS4yNjU2MjUgMjEuNDA2MjUgLTI0LjU3ODEyNSBMIDE3LjQzNzUgLTIwLjYwOTM3NSBDIDE3LjAxOTUzMSAtMjEuMDU0Njg4IDE2LjU1NDY4OCAtMjEuNDUzMTI1IDE2LjA0Njg3NSAtMjEuNzk2ODc1IEMgMTUuNTk3NjU2IC0yMi4wODU5MzggMTUuMDU0Njg4IC0yMi4zNTkzNzUgMTQuNDIxODc1IC0yMi42MDkzNzUgQyAxMy43OTY4NzUgLTIyLjg1OTM3NSAxMy4wODIwMzEgLTIyLjk4NDM3NSAxMi4yODEyNSAtMjIuOTg0Mzc1IEMgMTAuNzgxMjUgLTIyLjk4NDM3NSA5LjcxMDkzOCAtMjIuNzE4NzUgOS4wNzgxMjUgLTIyLjE4NzUgQyA4LjQ0MTQwNiAtMjEuNjY0MDYyIDguMTI1IC0yMS4wMDc4MTIgOC4xMjUgLTIwLjIxODc1IEMgOC4xMjUgLTE5LjQyNTc4MSA4LjQ2ODc1IC0xOC43OTY4NzUgOS4xNTYyNSAtMTguMzI4MTI1IEMgOS44NDM3NSAtMTcuODY3MTg4IDEwLjcwMzEyNSAtMTcuNDUzMTI1IDExLjczNDM3NSAtMTcuMDc4MTI1IEMgMTIuNzY1NjI1IC0xNi43MTA5MzggMTMuODc1IC0xNi4zMzIwMzEgMTUuMDYyNSAtMTUuOTM3NSBDIDE2LjI1IC0xNS41MzkwNjIgMTcuMzU5Mzc1IC0xNS4wMTk1MzEgMTguMzkwNjI1IC0xNC4zNzUgQyAxOS40MjE4NzUgLTEzLjcyNjU2MiAyMC4yODEyNSAtMTIuODk0NTMxIDIwLjk2ODc1IC0xMS44NzUgQyAyMS42NTYyNSAtMTAuODUxNTYyIDIyIC05LjUzNTE1NiAyMiAtNy45MjE4NzUgQyAyMiAtNi43ODUxNTYgMjEuNzU3ODEyIC01LjcwMzEyNSAyMS4yODEyNSAtNC42NzE4NzUgQyAyMC44MTI1IC0zLjY0MDYyNSAyMC4xMTcxODggLTIuNzM0Mzc1IDE5LjIwMzEyNSAtMS45NTMxMjUgQyAxOC4yOTY4NzUgLTEuMTc5Njg4IDE3LjE5MTQwNiAtMC41NjI1IDE1Ljg5MDYyNSAtMC4wOTM3NSBDIDE0LjU5NzY1NiAwLjM2MzI4MSAxMy4xMzI4MTIgMC41OTM3NSAxMS41IDAuNTkzNzUgWiBNIDExLjUgMC41OTM3NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjMDAwMDAwIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEzMi44NzY5NjMsIDgxLjMzNTA1MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDI0LjE4NzUgLTI3Ljc1IEwgMjQuMTg3NSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTYuODQzNzUgTCAyMS4wMTU2MjUgLTExLjUgTCA5LjUxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAtNS41NDY4NzUgTCAyNC41NzgxMjUgMCBMIDMuNTYyNSAwIFogTSAzLjU2MjUgLTI3Ljc1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTU5LjIzNzkwNCwgODEuMzM1MDUxKSI+PGc+PHBhdGggZD0iTSAzLjU2MjUgLTI3Ljc1IEwgOC45MjE4NzUgLTI3Ljc1IEwgMjIuMzkwNjI1IC0xMC41IEwgMjIuMzkwNjI1IC0yNy43NSBMIDI4LjM0Mzc1IC0yNy43NSBMIDI4LjM0Mzc1IDAgTCAyMi45ODQzNzUgMCBMIDkuNTE1NjI1IC0xNy4yNSBMIDkuNTE1NjI1IDAgTCAzLjU2MjUgMCBaIE0gMy41NjI1IC0yNy43NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjMDAwMDAwIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE5MS4xNDg1MTYsIDgxLjMzNTA1MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDEzLjY3MTg3NSAtMjcuNzUgQyAxNS44MTY0MDYgLTI3Ljc1IDE3Ljc4MTI1IC0yNy4zODI4MTIgMTkuNTYyNSAtMjYuNjU2MjUgQyAyMS4zNDM3NSAtMjUuOTI1NzgxIDIyLjg4MjgxMiAtMjQuOTQxNDA2IDI0LjE4NzUgLTIzLjcwMzEyNSBDIDI1LjUgLTIyLjQ2MDkzOCAyNi41MTk1MzEgLTIwLjk5MjE4OCAyNy4yNSAtMTkuMjk2ODc1IEMgMjcuOTc2NTYyIC0xNy42MDkzNzUgMjguMzQzNzUgLTE1LjgwMDc4MSAyOC4zNDM3NSAtMTMuODc1IEMgMjguMzQzNzUgLTExLjk0NTMxMiAyNy45NzY1NjIgLTEwLjEzMjgxMiAyNy4yNSAtOC40Mzc1IEMgMjYuNTE5NTMxIC02Ljc1IDI1LjUgLTUuMjg1MTU2IDI0LjE4NzUgLTQuMDQ2ODc1IEMgMjIuODgyODEyIC0yLjgwNDY4OCAyMS4zNDM3NSAtMS44MjAzMTIgMTkuNTYyNSAtMS4wOTM3NSBDIDE3Ljc4MTI1IC0wLjM2MzI4MSAxNS44MTY0MDYgMCAxMy42NzE4NzUgMCBMIDMuNTYyNSAwIFogTSAxMy42NzE4NzUgLTUuNTQ2ODc1IEMgMTQuOTIxODc1IC01LjU0Njg3NSAxNi4wNjY0MDYgLTUuNzUzOTA2IDE3LjEwOTM3NSAtNi4xNzE4NzUgQyAxOC4xNDg0MzggLTYuNTk3NjU2IDE5LjA0Njg3NSAtNy4xNzk2ODggMTkuNzk2ODc1IC03LjkyMTg3NSBDIDIwLjU1NDY4OCAtOC42NjAxNTYgMjEuMTQ0NTMxIC05LjUzOTA2MiAyMS41NjI1IC0xMC41NjI1IEMgMjEuOTg4MjgxIC0xMS41ODIwMzEgMjIuMjAzMTI1IC0xMi42ODc1IDIyLjIwMzEyNSAtMTMuODc1IEMgMjIuMjAzMTI1IC0xNS4wNjI1IDIxLjk4ODI4MSAtMTYuMTYwMTU2IDIxLjU2MjUgLTE3LjE3MTg3NSBDIDIxLjE0NDUzMSAtMTguMTkxNDA2IDIwLjU1NDY4OCAtMTkuMDcwMzEyIDE5Ljc5Njg3NSAtMTkuODEyNSBDIDE5LjA0Njg3NSAtMjAuNTYyNSAxOC4xNDg0MzggLTIxLjE0NDUzMSAxNy4xMDkzNzUgLTIxLjU2MjUgQyAxNi4wNjY0MDYgLTIxLjk4ODI4MSAxNC45MjE4NzUgLTIyLjIwMzEyNSAxMy42NzE4NzUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0yMi4yMDMxMjUgTCA5LjUxNTYyNSAtNS41NDY4NzUgWiBNIDEzLjY3MTg3NSAtNS41NDY4NzUgIi8+PC9nPjwvZz48L2c+PC9zdmc+" alt="MeetSend AI" style="height:36px;width:auto;display:block;"></a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#waitlist" class="nav-cta">Join Waitlist</a></li>
+  </ul>
+  <button class="nav-mobile">☰</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Now accepting early access applications
+    </div>
+    <h1>
+      Every event.<br>
+      Every conversation.<br>
+      <em>Every follow-up.</em><br>
+      <span class="highlight">Automated.</span>
+    </h1>
+    <p class="hero-sub">MeetSend AI turns your trade show conversations into hyper-personalised follow-up emails — within minutes, not days. Snap a badge, record a voice note, move on.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join the Waitlist →</button>
+      <button class="btn-secondary" onclick="document.getElementById('solution').scrollIntoView({behavior:'smooth'})">See how it works</button>
+    </div>
+    <div class="hero-social">
+      <span class="hero-social-label">Built by alumni of</span>
+      <div class="hero-logos">
+        <span class="hero-logo-pill">IBM</span>
+        <span class="hero-logo-pill">Google</span>
+        <span class="hero-logo-pill">Uber</span>
+        <span class="hero-logo-pill">Insight</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">Badge scan <span class="ticker-sep">·</span> <strong>instant extract</strong></span>
+    <span class="ticker-item">Voice note <span class="ticker-sep">·</span> <strong>auto transcribe</strong></span>
+    <span class="ticker-item">Lead enrichment <span class="ticker-sep">·</span> <strong>company data</strong></span>
+    <span class="ticker-item">AI follow-up <span class="ticker-sep">·</span> <strong>in your inbox</strong></span>
+    <span class="ticker-item">CRM sync <span class="ticker-sep">·</span> <strong>zero manual entry</strong></span>
+    <span class="ticker-item">Group conversations <span class="ticker-sep">·</span> <strong>3 emails at once</strong></span>
+    <span class="ticker-item">Badge scan <span class="ticker-sep">·</span> <strong>instant extract</strong></span>
+    <span class="ticker-item">Voice note <span class="ticker-sep">·</span> <strong>auto transcribe</strong></span>
+    <span class="ticker-item">Lead enrichment <span class="ticker-sep">·</span> <strong>company data</strong></span>
+    <span class="ticker-item">AI follow-up <span class="ticker-sep">·</span> <strong>in your inbox</strong></span>
+    <span class="ticker-item">CRM sync <span class="ticker-sep">·</span> <strong>zero manual entry</strong></span>
+    <span class="ticker-item">Group conversations <span class="ticker-sep">·</span> <strong>3 emails at once</strong></span>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section-inner">
+    <div class="section-label reveal">The Problem</div>
+    <h2 class="reveal">You're leaving <em>millions</em><br>on the table.</h2>
+    <div class="problem-grid">
+      <div class="problem-stat-stack">
+        <div class="stat-card reveal">
+          <div class="stat-num">80%</div>
+          <div class="stat-label">of trade show leads are never followed up on — the industry's most expensive and consistent failure</div>
+          <span class="stat-source">Cvent &amp; Exhibit Surveys, 2025</span>
+        </div>
+        <div class="stat-card reveal">
+          <div class="stat-num">50%</div>
+          <div class="stat-label">of buyers choose the vendor that responds first — making speed the single biggest factor in winning the deal</div>
+          <span class="stat-source">InsideSales.com / Integrate</span>
+        </div>
+        <div class="stat-card reveal">
+          <div class="stat-num">7×</div>
+          <div class="stat-label">more likely to qualify a lead when you follow up within 24 hours vs. waiting a week or more</div>
+          <span class="stat-source">Harvard Business Review / Moots, 2025</span>
+        </div>
+      </div>
+      <div class="problem-story">
+        <div class="problem-point reveal">
+          <div class="problem-icon">🪪</div>
+          <div>
+            <div class="problem-point-title">200 badges scanned. 40 followed up.</div>
+            <div class="problem-point-desc">80% of leads sit in a spreadsheet while your team tries to remember who was who and why they mattered. That's not a people problem — it's a systems problem.</div>
+          </div>
+        </div>
+        <div class="problem-point reveal">
+          <div class="problem-icon">📧</div>
+          <div>
+            <div class="problem-point-title">"Great to meet you at the show!"</div>
+            <div class="problem-point-desc">Generic follow-ups treat a hot prospect the same as someone who grabbed a pen from your stand. 81% of attendees have buying authority — they deserve better than a mail merge.</div>
+          </div>
+        </div>
+        <div class="problem-point reveal">
+          <div class="problem-icon">⏰</div>
+          <div>
+            <div class="problem-point-title">Monday comes. The moment is gone.</div>
+            <div class="problem-point-desc">The average personalised follow-up takes nearly 12 hours to prepare post-event. By then, your competitor who responded same-day already has the meeting booked.</div>
+          </div>
+        </div>
+        <div class="problem-point reveal">
+          <div class="problem-icon">💸</div>
+          <div>
+            <div class="problem-point-title">$112 per lead. Most go nowhere.</div>
+            <div class="problem-point-desc">The average trade show lead costs $112 to generate. When 80% are never followed up, you're not just losing leads — you're burning the budget that generated them.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="section-inner">
+    <div class="section-label reveal">The Solution</div>
+    <h2 class="reveal">60 seconds at the booth.<br><em>Everything else is automatic.</em></h2>
+    <div class="solution-flow reveal">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-icon">📸</div>
+        <div class="flow-title">Snap the badge</div>
+        <div class="flow-desc">Photograph their conference badge or business card and send it to MeetSend on WhatsApp. Works for groups — snap all three badges in one shot.</div>
+        <span class="flow-tag">5 seconds</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-icon">🎤</div>
+        <div class="flow-title">Record a voice note</div>
+        <div class="flow-desc">Hold record and speak freely for 30 seconds while walking to the next conversation. Pain points, buying signals, what you promised — raw is fine.</div>
+        <span class="flow-tag">30 seconds</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-icon">✉️</div>
+        <div class="flow-title">Follow-up lands in your inbox</div>
+        <div class="flow-desc">MeetSend extracts the contact, enriches the lead, transcribes your voice note, and generates a personalised follow-up email — delivered directly to the rep who captured the lead. Each person on your team gets their own emails. Syncs automatically to your CRM — Salesforce, HubSpot, or Pipedrive.</div>
+        <span class="flow-tag">Under 5 mins</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-icon">📊</div>
+        <div class="flow-title">View everything in one place</div>
+        <div class="flow-desc">Every lead, every follow-up, every event — visible in your MeetSend dashboard. See who followed up, who hasn't, lead scores, and pipeline value generated. Full team visibility. Zero spreadsheets.</div>
+        <span class="flow-tag">Real-time</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label reveal">Features</div>
+    <h2 class="reveal">Everything your sales team<br><em>actually needs.</em></h2>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-emoji">🤖</div>
+        <div class="feature-title">AI-Powered Follow-Ups</div>
+        <div class="feature-desc">Every email sounds like you wrote it in 3 minutes after a great conversation — because it references the real conversation you had.</div>
+        <ul class="feature-list">
+          <li>Personalised to their role, pain, and timeline</li>
+          <li>One clear call to action per email</li>
+          <li>Human tone, zero buzzwords</li>
+        </ul>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-emoji">🔍</div>
+        <div class="feature-title">Automatic Lead Enrichment</div>
+        <div class="feature-desc">A name and company becomes a full profile — company size, funding stage, tech stack, recent news — automatically.</div>
+        <ul class="feature-list">
+          <li>LinkedIn profile data</li>
+          <li>Company size and industry</li>
+          <li>Recent company news and signals</li>
+        </ul>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-emoji">📸</div>
+        <div class="feature-title">Badge & Card Scanning</div>
+        <div class="feature-desc">Photograph any badge or business card. MeetSend reads it instantly — name, title, company — even from angled or imperfect photos.</div>
+        <ul class="feature-list">
+          <li>Works at any event, no organiser API needed</li>
+          <li>Group photos — scan 3 badges at once</li>
+          <li>Business cards, printed badges, digital profiles</li>
+        </ul>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-emoji">🎯</div>
+        <div class="feature-title">Lead Scoring</div>
+        <div class="feature-desc">Every lead gets scored automatically — Hot, Warm, or Cool — based on buying signals in your voice note. Know who to call first.</div>
+        <ul class="feature-list">
+          <li>Based on timeline, budget, and intent signals</li>
+          <li>Reasoning explained, not just a score</li>
+          <li>Suggested follow-up timing per lead</li>
+        </ul>
+      </div>
+      <div class="feature-card wide reveal">
+        <div class="feature-emoji">👥</div>
+        <div class="feature-title">Group Conversations — One Voice Note, Three Personalised Emails</div>
+        <div class="feature-desc">Met a decision maker, a champion, and a technical evaluator from the same company? MeetSend generates three separate emails, each angled to that person's role and priorities. The decision maker gets the ROI email. The champion gets the implementation email. The CTO gets the technical specs email.</div>
+        <ul class="feature-list">
+          <li>Role-based email angles generated automatically</li>
+          <li>One voice note covers the entire group</li>
+          <li>Each contact enriched and scored individually</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-label reveal">Pricing</div>
+    <h2 class="reveal">Simple pricing.<br><em>No surprises.</em></h2>
+    <p class="pricing-sub reveal">Early access pricing for founding members. Lock in your rate before we launch publicly.</p>
+    <div class="pricing-grid">
+
+      <!-- SOLO -->
+      <div class="price-card reveal">
+        <div class="price-name">Solo</div>
+        <div class="price-amount">£29</div>
+        <div class="price-period">per month · 1 user</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feature"><div class="price-check">✓</div>50 leads per month</div>
+          <div class="price-feature"><div class="price-check">✓</div>Badge & card scanning</div>
+          <div class="price-feature"><div class="price-check">✓</div>AI follow-up emails</div>
+          <div class="price-feature"><div class="price-check">✓</div>Lead enrichment</div>
+          <div class="price-feature"><div class="price-check">✓</div>WhatsApp capture</div>
+          <div class="price-feature"><div class="price-check">✓</div>Email support</div>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+
+      <!-- STARTER -->
+      <div class="price-card reveal">
+        <div class="price-name">Starter</div>
+        <div class="price-amount">£99</div>
+        <div class="price-period">per month · up to 3 users</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feature"><div class="price-check">✓</div>200 leads per month</div>
+          <div class="price-feature"><div class="price-check">✓</div>Everything in Solo</div>
+          <div class="price-feature"><div class="price-check">✓</div>Group conversation mode</div>
+          <div class="price-feature"><div class="price-check">✓</div>Lead scoring + reasoning</div>
+          <div class="price-feature"><div class="price-check">✓</div>Basic CRM export</div>
+          <div class="price-feature"><div class="price-check">✓</div>Priority support</div>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+
+      <!-- GROWTH — featured -->
+      <div class="price-card featured reveal">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-name" style="color:var(--ink)">Growth</div>
+        <div class="price-amount" style="color:var(--ink)">£249</div>
+        <div class="price-period">per month · up to 10 users</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feature"><div class="price-check">✓</div>500 leads per month</div>
+          <div class="price-feature"><div class="price-check">✓</div>Everything in Starter</div>
+          <div class="price-feature"><div class="price-check">✓</div>CRM sync (HubSpot, Salesforce)</div>
+          <div class="price-feature"><div class="price-check">✓</div>Team dashboard & analytics</div>
+          <div class="price-feature"><div class="price-check">✓</div>Multi-event campaigns</div>
+          <div class="price-feature"><div class="price-check">✓</div>Dedicated onboarding</div>
+        </div>
+        <button class="btn-plan btn-plan-dark" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-card reveal">
+        <div class="price-name">Enterprise</div>
+        <div class="price-amount" style="font-size:36px;margin-top:20px">Custom</div>
+        <div class="price-period">tailored to your team</div>
+        <div class="price-divider"></div>
+        <div class="price-features">
+          <div class="price-feature"><div class="price-check">✓</div>Unlimited leads</div>
+          <div class="price-feature"><div class="price-check">✓</div>Everything in Growth</div>
+          <div class="price-feature"><div class="price-check">✓</div>Custom CRM integrations</div>
+          <div class="price-feature"><div class="price-check">✓</div>SLA & compliance support</div>
+          <div class="price-feature"><div class="price-check">✓</div>White-label available</div>
+          <div class="price-feature"><div class="price-check">✓</div>Dedicated account manager</div>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Talk to us</button>
+      </div>
+
+    </div>
+    <p class="pricing-note reveal">All plans include a 14-day free trial. No credit card required to join the waitlist.</p>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section id="waitlist">
+  <div class="section-label reveal" style="justify-content:center">Early Access</div>
+  <h2 class="reveal" style="color:var(--ink);max-width:700px;margin:0 auto 16px">Be first.<br>Shape the product.</h2>
+  <p class="waitlist-sub reveal">Join the founding user community. Early members get locked-in pricing, direct access to the founder, and help shape what MeetSend becomes.</p>
+  <form class="waitlist-form reveal" onsubmit="handleWaitlist(event)">
+    <input type="email" class="waitlist-input" placeholder="your@email.com" required id="waitlistEmail">
+    <button type="submit" class="btn-waitlist">Join Waitlist →</button>
+  </form>
+  <div class="waitlist-success" id="waitlistSuccess">✓ You're on the list. We'll be in touch soon.</div>
+  <p class="waitlist-count reveal">Join <strong>founding members</strong> already on the waitlist.</p>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-label reveal">Contact</div>
+    <h2 class="reveal">Let's talk.<br><em>No pitch. No deck.</em></h2>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p class="reveal" style="font-size:16px;color:var(--muted);line-height:1.7;font-weight:300;max-width:400px">We're in the early stages and genuinely want to understand your event sales process. If you exhibit at trade shows, 20 minutes of your perspective is worth more to us than anything else right now.</p>
+        <div class="contact-item reveal">
+          <div class="contact-icon">✉️</div>
+          <div>
+            <div class="contact-item-title">Email</div>
+            <div class="contact-item-val"><a href="/cdn-cgi/l/email-protection#cea6aba2a2a18ea3ababbabdaba0aae0afa7" style="color:inherit;text-decoration:none;"><span class="__cf_email__" data-cfemail="bdd5d8d1d1d2fdd0d8d8c9ced8d3d993dcd4">[email&#160;protected]</span></a></div>
+          </div>
+        </div>
+        <div class="contact-item reveal">
+          <div class="contact-icon">🌐</div>
+          <div>
+            <div class="contact-item-title">Website</div>
+            <div class="contact-item-val">meetsend.ai</div>
+          </div>
+        </div>
+        <div class="contact-item reveal">
+          <div class="contact-icon">💼</div>
+          <div>
+            <div class="contact-item-title">LinkedIn</div>
+            <div class="contact-item-val">linkedin.com/company/MeetSend-ai</div>
+          </div>
+        </div>
+        <div class="contact-item reveal">
+          <div class="contact-icon">📅</div>
+          <div style="flex:1">
+            <div class="contact-item-title">Book a call</div>
+            <div class="contact-item-val">20 min discovery call — no pitch, no deck (unless you'd like one)</div>
+            <a
+              href="https://calendar.app.google/2SzcnDsrV9qdwang8"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="book-call-btn"
+            >
+              Book a time →
+            </a>
+          </div>
+        </div>
+      </div>
+      <form class="contact-form reveal" onsubmit="handleContact(event)">
+        <div class="form-group">
+          <label class="form-label">Your name</label>
+          <input type="text" class="form-input" placeholder="James Thompson" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" placeholder="james@company.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company</label>
+          <input type="text" class="form-input" placeholder="Acme Corp">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea class="form-textarea" placeholder="Tell us about your events setup, your team, or just say hi..."></textarea>
+        </div>
+        <button type="submit" class="btn-contact">Send Message →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzIwIiB6b29tQW5kUGFuPSJtYWduaWZ5IiB2aWV3Qm94PSIwIDAgMjQwIDEwNy4wNCIgaGVpZ2h0PSIxMzIiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIG1lZXQiIHZlcnNpb249IjEuMCI+PGRlZnM+PGcvPjxjbGlwUGF0aCBpZD0iMDNjMDE5NjQ4YSI+PHBhdGggZD0iTSAxNC4wNTQ2ODggNS4xNDA2MjUgTCA5NS41ODIwMzEgNS4xNDA2MjUgTCA5NS41ODIwMzEgODYuNjY3OTY5IEwgMTQuMDU0Njg4IDg2LjY2Nzk2OSBaIE0gMTQuMDU0Njg4IDUuMTQwNjI1ICIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImVkYjA5MzEwYjEiPjxwYXRoIGQ9Ik0gMC4wNTQ2ODc1IDAuMTQwNjI1IEwgODEuNTgyMDMxIDAuMTQwNjI1IEwgODEuNTgyMDMxIDgxLjY2Nzk2OSBMIDAuMDU0Njg3NSA4MS42Njc5NjkgWiBNIDAuMDU0Njg3NSAwLjE0MDYyNSAiIGNsaXAtcnVsZT0ibm9uemVybyIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSI3ZDQwNjAyNTZhIj48cmVjdCB4PSIwIiB3aWR0aD0iODIiIHk9IjAiIGhlaWdodD0iODIiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iNTY5ZTJjZGVmNyI+PHBhdGggZD0iTSAzNiAyNyBMIDczIDI3IEwgNzMgNjUgTCAzNiA2NSBaIE0gMzYgMjcgIiBjbGlwLXJ1bGU9Im5vbnplcm8iLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iODFjYjk2MzY0MyI+PHBhdGggZD0iTSAyMy43MjY1NjIgNDUuODcxMDk0IEwgNTQuNzM4MjgxIDE0Ljg2MzI4MSBMIDg1Ljc0NjA5NCA0NS44NzEwOTQgTCA1NC43MzgyODEgNzYuODgyODEyIFogTSAyMy43MjY1NjIgNDUuODcxMDk0ICIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9IjgzOGE2NDEzOGYiPjxwYXRoIGQ9Ik0gMjMuNzI2NTYyIDQ1Ljg3MTA5NCBMIDU0LjczODI4MSAxNC44NjMyODEgTCA4NS43NDYwOTQgNDUuODcxMDk0IEwgNTQuNzM4MjgxIDc2Ljg4MjgxMiBaIE0gMjMuNzI2NTYyIDQ1Ljg3MTA5NCAiIGNsaXAtcnVsZT0ibm9uemVybyIvPjwvY2xpcFBhdGg+PGNsaXBQYXRoIGlkPSI1ZjljODNlYzc4Ij48cGF0aCBkPSJNIDIzLjcyNjU2MiA0NS44NzEwOTQgTCA1NC43MzgyODEgMTQuODYzMjgxIEwgODUuNzQ2MDk0IDQ1Ljg3MTA5NCBMIDU0LjczODI4MSA3Ni44ODI4MTIgWiBNIDIzLjcyNjU2MiA0NS44NzEwOTQgIiBjbGlwLXJ1bGU9Im5vbnplcm8iLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjMDNjMDE5NjQ4YSkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsIDAsIDAsIDEsIDE0LCA1KSI+PGcgY2xpcC1wYXRoPSJ1cmwoIzdkNDA2MDI1NmEpIj48ZyBjbGlwLXBhdGg9InVybCgjZWRiMDkzMTBiMSkiPjxwYXRoIGZpbGw9IiNjMWZmNzIiIGQ9Ik0gMC4wNTQ2ODc1IDAuMTQwNjI1IEwgODEuNTgyMDMxIDAuMTQwNjI1IEwgODEuNTgyMDMxIDgxLjY2Nzk2OSBMIDAuMDU0Njg3NSA4MS42Njc5NjkgWiBNIDAuMDU0Njg3NSAwLjE0MDYyNSAiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9nPjwvZz48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCM1NjllMmNkZWY3KSI+PGcgY2xpcC1wYXRoPSJ1cmwoIzgxY2I5NjM2NDMpIj48ZyBjbGlwLXBhdGg9InVybCgjODM4YTY0MTM4ZikiPjxnIGNsaXAtcGF0aD0idXJsKCM1ZjljODNlYzc4KSI+PHBhdGggZmlsbD0iIzAwMDAwMCIgZD0iTSA3Mi43NzM0MzggMzIuOTMzNTk0IEMgNjQuNjkxNDA2IDQ3LjY3OTY4OCA2OS4yMDMxMjUgNTUuNjAxNTYyIDcyLjYxMzI4MSA1OS4wMDc4MTIgTCA2Ny4yOTI5NjkgNjQuMzI4MTI1IEMgNjQuNTUwNzgxIDYxLjU4NTkzOCA1OS44NDc2NTYgNTUuMjczNDM4IDYwLjg5MDYyNSA0NS4wMjczNDQgTCA0MS44OTg0MzggNjQuMDE5NTMxIEwgMzYuNTg5ODQ0IDU4LjcxMDkzOCBMIDU1LjU4MjAzMSAzOS43MTg3NSBDIDQ1LjMzNTkzOCA0MC43NjE3MTkgMzkuMDIzNDM4IDM2LjA1ODU5NCAzNi4yODEyNSAzMy4zMTY0MDYgTCA0MS42MDE1NjIgMjcuOTk2MDk0IEMgNDUuMDA3ODEyIDMxLjQwNjI1IDUyLjkyOTY4OCAzNS45MTc5NjkgNjcuNjc1NzgxIDI3LjgzNTkzOCBaIE0gNzIuNzczNDM4IDMyLjkzMzU5NCAiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9nPjwvZz48L2c+PC9nPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA4Ljk5MDM5NCwgNDAuNTcxNjEpIj48Zz48cGF0aCBkPSJNIDMuNTYyNSAtMjcuNzUgTCA4LjkyMTg3NSAtMjcuNzUgTCAxOC40Mzc1IC0xNS44NTkzNzUgTCAyNy45NTMxMjUgLTI3Ljc1IEwgMzMuMjk2ODc1IC0yNy43NSBMIDMzLjI5Njg3NSAwIEwgMjcuMzU5Mzc1IDAgTCAyNy4zNTkzNzUgLTE4LjIzNDM3NSBMIDE4LjQzNzUgLTcuMTQwNjI1IEwgOS41MTU2MjUgLTE4LjIzNDM3NSBMIDkuNTE1NjI1IDAgTCAzLjU2MjUgMCBaIE0gMy41NjI1IC0yNy43NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NS44NTYwNjcsIDQwLjU3MTYxKSI+PGc+PHBhdGggZD0iTSAzLjU2MjUgLTI3Ljc1IEwgMjQuMTg3NSAtMjcuNzUgTCAyNC4xODc1IC0yMi4yMDMxMjUgTCA5LjUxNTYyNSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTE2Ljg0Mzc1IEwgMjEuMDE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC0xMS41IEwgOS41MTU2MjUgLTUuNTQ2ODc1IEwgMjQuNTc4MTI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAwIEwgMy41NjI1IDAgWiBNIDMuNTYyNSAtMjcuNzUgIi8+PC9nPjwvZz48L2c+PGcgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIxIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNzIuMjE3MDA3LCA0MC41NzE2MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDI0LjE4NzUgLTI3Ljc1IEwgMjQuMTg3NSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTYuODQzNzUgTCAyMS4wMTU2MjUgLTExLjUgTCA5LjUxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAtNS41NDY4NzUgTCAyNC41NzgxMjUgMCBMIDMuNTYyNSAwIFogTSAzLjU2MjUgLTI3Ljc1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTk4LjU3Nzk0OCwgNDAuNTcxNjEpIj48Zz48cGF0aCBkPSJNIDguNzE4NzUgLTIyLjIwMzEyNSBMIDAuNzk2ODc1IC0yMi4yMDMxMjUgTCAwLjc5Njg3NSAtMjcuNzUgTCAyMi41OTM3NSAtMjcuNzUgTCAyMi41OTM3NSAtMjIuMjAzMTI1IEwgMTQuNjcxODc1IC0yMi4yMDMxMjUgTCAxNC42NzE4NzUgMCBMIDguNzE4NzUgMCBaIE0gOC43MTg3NSAtMjIuMjAzMTI1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA5LjY4NzI2OSwgODEuMzM1MDUxKSI+PGc+PHBhdGggZD0iTSAxMS41IDAuNTkzNzUgQyA5LjY5NTMxMiAwLjU5Mzc1IDguMTI4OTA2IDAuMzY3MTg4IDYuNzk2ODc1IC0wLjA3ODEyNSBDIDUuNDYwOTM4IC0wLjUyMzQzOCA0LjM0NzY1NiAtMS4wMjM0MzggMy40NTMxMjUgLTEuNTc4MTI1IEMgMi4zOTA2MjUgLTIuMjEwOTM4IDEuNTAzOTA2IC0yLjk0MTQwNiAwLjc5Njg3NSAtMy43NjU2MjUgTCA0Ljc1IC03LjczNDM3NSBDIDUuMjI2NTYyIC03LjE3MTg3NSA1LjgwMDc4MSAtNi42NjQwNjIgNi40Njg3NSAtNi4yMTg3NSBDIDcuMDE5NTMxIC01Ljg1MTU2MiA3LjY5NTMxMiAtNS41MTU2MjUgOC41IC01LjIwMzEyNSBDIDkuMzEyNSAtNC44OTg0MzggMTAuMjQyMTg4IC00Ljc1IDExLjI5Njg3NSAtNC43NSBDIDEyLjg3ODkwNiAtNC43NSAxNC4wMzUxNTYgLTUuMDUwNzgxIDE0Ljc2NTYyNSAtNS42NTYyNSBDIDE1LjQ5MjE4OCAtNi4yNjk1MzEgMTUuODU5Mzc1IC03LjAyMzQzOCAxNS44NTkzNzUgLTcuOTIxODc1IEMgMTUuODU5Mzc1IC04LjcyMjY1NiAxNS41MTU2MjUgLTkuMzUxNTYyIDE0LjgyODEyNSAtOS44MTI1IEMgMTQuMTQwNjI1IC0xMC4yNjk1MzEgMTMuMjgxMjUgLTEwLjY3OTY4OCAxMi4yNSAtMTEuMDQ2ODc1IEMgMTEuMjE4NzUgLTExLjQyMTg3NSAxMC4xMDkzNzUgLTExLjgwNDY4OCA4LjkyMTg3NSAtMTIuMjAzMTI1IEMgNy43MzQzNzUgLTEyLjU5NzY1NiA2LjYyNSAtMTMuMTE3MTg4IDUuNTkzNzUgLTEzLjc2NTYyNSBDIDQuNTYyNSAtMTQuNDIxODc1IDMuNzAzMTI1IC0xNS4yNTM5MDYgMy4wMTU2MjUgLTE2LjI2NTYyNSBDIDIuMzI4MTI1IC0xNy4yODUxNTYgMS45ODQzNzUgLTE4LjYwMTU2MiAxLjk4NDM3NSAtMjAuMjE4NzUgQyAxLjk4NDM3NSAtMjEuMzAwNzgxIDIuMjEwOTM4IC0yMi4zMzU5MzggMi42NzE4NzUgLTIzLjMyODEyNSBDIDMuMTQwNjI1IC0yNC4zMTY0MDYgMy44MDA3ODEgLTI1LjE3OTY4OCA0LjY1NjI1IC0yNS45MjE4NzUgQyA1LjUxOTUzMSAtMjYuNjYwMTU2IDYuNTc4MTI1IC0yNy4yNSA3LjgyODEyNSAtMjcuNjg3NSBDIDkuMDg1OTM4IC0yOC4xMjUgMTAuNTA3ODEyIC0yOC4zNDM3NSAxMi4wOTM3NSAtMjguMzQzNzUgQyAxMy42MjUgLTI4LjM0Mzc1IDE0Ljk3NjU2MiAtMjguMTQ0NTMxIDE2LjE1NjI1IC0yNy43NSBDIDE3LjMzMjAzMSAtMjcuMzUxNTYyIDE4LjMwMDc4MSAtMjYuOTE0MDYyIDE5LjA2MjUgLTI2LjQzNzUgQyAxOS45Njg3NSAtMjUuODgyODEyIDIwLjc1IC0yNS4yNjU2MjUgMjEuNDA2MjUgLTI0LjU3ODEyNSBMIDE3LjQzNzUgLTIwLjYwOTM3NSBDIDE3LjAxOTUzMSAtMjEuMDU0Njg4IDE2LjU1NDY4OCAtMjEuNDUzMTI1IDE2LjA0Njg3NSAtMjEuNzk2ODc1IEMgMTUuNTk3NjU2IC0yMi4wODU5MzggMTUuMDU0Njg4IC0yMi4zNTkzNzUgMTQuNDIxODc1IC0yMi42MDkzNzUgQyAxMy43OTY4NzUgLTIyLjg1OTM3NSAxMy4wODIwMzEgLTIyLjk4NDM3NSAxMi4yODEyNSAtMjIuOTg0Mzc1IEMgMTAuNzgxMjUgLTIyLjk4NDM3NSA5LjcxMDkzOCAtMjIuNzE4NzUgOS4wNzgxMjUgLTIyLjE4NzUgQyA4LjQ0MTQwNiAtMjEuNjY0MDYyIDguMTI1IC0yMS4wMDc4MTIgOC4xMjUgLTIwLjIxODc1IEMgOC4xMjUgLTE5LjQyNTc4MSA4LjQ2ODc1IC0xOC43OTY4NzUgOS4xNTYyNSAtMTguMzI4MTI1IEMgOS44NDM3NSAtMTcuODY3MTg4IDEwLjcwMzEyNSAtMTcuNDUzMTI1IDExLjczNDM3NSAtMTcuMDc4MTI1IEMgMTIuNzY1NjI1IC0xNi43MTA5MzggMTMuODc1IC0xNi4zMzIwMzEgMTUuMDYyNSAtMTUuOTM3NSBDIDE2LjI1IC0xNS41MzkwNjIgMTcuMzU5Mzc1IC0xNS4wMTk1MzEgMTguMzkwNjI1IC0xNC4zNzUgQyAxOS40MjE4NzUgLTEzLjcyNjU2MiAyMC4yODEyNSAtMTIuODk0NTMxIDIwLjk2ODc1IC0xMS44NzUgQyAyMS42NTYyNSAtMTAuODUxNTYyIDIyIC05LjUzNTE1NiAyMiAtNy45MjE4NzUgQyAyMiAtNi43ODUxNTYgMjEuNzU3ODEyIC01LjcwMzEyNSAyMS4yODEyNSAtNC42NzE4NzUgQyAyMC44MTI1IC0zLjY0MDYyNSAyMC4xMTcxODggLTIuNzM0Mzc1IDE5LjIwMzEyNSAtMS45NTMxMjUgQyAxOC4yOTY4NzUgLTEuMTc5Njg4IDE3LjE5MTQwNiAtMC41NjI1IDE1Ljg5MDYyNSAtMC4wOTM3NSBDIDE0LjU5NzY1NiAwLjM2MzI4MSAxMy4xMzI4MTIgMC41OTM3NSAxMS41IDAuNTkzNzUgWiBNIDExLjUgMC41OTM3NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEzMi44NzY5NjMsIDgxLjMzNTA1MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDI0LjE4NzUgLTI3Ljc1IEwgMjQuMTg3NSAtMjIuMjAzMTI1IEwgOS41MTU2MjUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0xNi44NDM3NSBMIDIxLjAxNTYyNSAtMTYuODQzNzUgTCAyMS4wMTU2MjUgLTExLjUgTCA5LjUxNTYyNSAtMTEuNSBMIDkuNTE1NjI1IC01LjU0Njg3NSBMIDI0LjU3ODEyNSAtNS41NDY4NzUgTCAyNC41NzgxMjUgMCBMIDMuNTYyNSAwIFogTSAzLjU2MjUgLTI3Ljc1ICIvPjwvZz48L2c+PC9nPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTU5LjIzNzkwNCwgODEuMzM1MDUxKSI+PGc+PHBhdGggZD0iTSAzLjU2MjUgLTI3Ljc1IEwgOC45MjE4NzUgLTI3Ljc1IEwgMjIuMzkwNjI1IC0xMC41IEwgMjIuMzkwNjI1IC0yNy43NSBMIDI4LjM0Mzc1IC0yNy43NSBMIDI4LjM0Mzc1IDAgTCAyMi45ODQzNzUgMCBMIDkuNTE1NjI1IC0xNy4yNSBMIDkuNTE1NjI1IDAgTCAzLjU2MjUgMCBaIE0gMy41NjI1IC0yNy43NSAiLz48L2c+PC9nPjwvZz48ZyBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjEiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE5MS4xNDg1MTYsIDgxLjMzNTA1MSkiPjxnPjxwYXRoIGQ9Ik0gMy41NjI1IC0yNy43NSBMIDEzLjY3MTg3NSAtMjcuNzUgQyAxNS44MTY0MDYgLTI3Ljc1IDE3Ljc4MTI1IC0yNy4zODI4MTIgMTkuNTYyNSAtMjYuNjU2MjUgQyAyMS4zNDM3NSAtMjUuOTI1NzgxIDIyLjg4MjgxMiAtMjQuOTQxNDA2IDI0LjE4NzUgLTIzLjcwMzEyNSBDIDI1LjUgLTIyLjQ2MDkzOCAyNi41MTk1MzEgLTIwLjk5MjE4OCAyNy4yNSAtMTkuMjk2ODc1IEMgMjcuOTc2NTYyIC0xNy42MDkzNzUgMjguMzQzNzUgLTE1LjgwMDc4MSAyOC4zNDM3NSAtMTMuODc1IEMgMjguMzQzNzUgLTExLjk0NTMxMiAyNy45NzY1NjIgLTEwLjEzMjgxMiAyNy4yNSAtOC40Mzc1IEMgMjYuNTE5NTMxIC02Ljc1IDI1LjUgLTUuMjg1MTU2IDI0LjE4NzUgLTQuMDQ2ODc1IEMgMjIuODgyODEyIC0yLjgwNDY4OCAyMS4zNDM3NSAtMS44MjAzMTIgMTkuNTYyNSAtMS4wOTM3NSBDIDE3Ljc4MTI1IC0wLjM2MzI4MSAxNS44MTY0MDYgMCAxMy42NzE4NzUgMCBMIDMuNTYyNSAwIFogTSAxMy42NzE4NzUgLTUuNTQ2ODc1IEMgMTQuOTIxODc1IC01LjU0Njg3NSAxNi4wNjY0MDYgLTUuNzUzOTA2IDE3LjEwOTM3NSAtNi4xNzE4NzUgQyAxOC4xNDg0MzggLTYuNTk3NjU2IDE5LjA0Njg3NSAtNy4xNzk2ODggMTkuNzk2ODc1IC03LjkyMTg3NSBDIDIwLjU1NDY4OCAtOC42NjAxNTYgMjEuMTQ0NTMxIC05LjUzOTA2MiAyMS41NjI1IC0xMC41NjI1IEMgMjEuOTg4MjgxIC0xMS41ODIwMzEgMjIuMjAzMTI1IC0xMi42ODc1IDIyLjIwMzEyNSAtMTMuODc1IEMgMjIuMjAzMTI1IC0xNS4wNjI1IDIxLjk4ODI4MSAtMTYuMTYwMTU2IDIxLjU2MjUgLTE3LjE3MTg3NSBDIDIxLjE0NDUzMSAtMTguMTkxNDA2IDIwLjU1NDY4OCAtMTkuMDcwMzEyIDE5Ljc5Njg3NSAtMTkuODEyNSBDIDE5LjA0Njg3NSAtMjAuNTYyNSAxOC4xNDg0MzggLTIxLjE0NDUzMSAxNy4xMDkzNzUgLTIxLjU2MjUgQyAxNi4wNjY0MDYgLTIxLjk4ODI4MSAxNC45MjE4NzUgLTIyLjIwMzEyNSAxMy42NzE4NzUgLTIyLjIwMzEyNSBMIDkuNTE1NjI1IC0yMi4yMDMxMjUgTCA5LjUxNTYyNSAtNS41NDY4NzUgWiBNIDEzLjY3MTg3NSAtNS41NDY4NzUgIi8+PC9nPjwvZz48L2c+PC9zdmc+" alt="MeetSend AI" style="height:28px;width:auto;display:block;"></div>
+  <div class="footer-copy">© 2025 MeetSend AI. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Custom cursor — guarded for mobile/null safety
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+if (cursor && ring) {
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+}
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('nav');
+  if (nav) nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.05, rootMargin: "0px 0px -50px 0px" });
+reveals.forEach(el => observer.observe(el));
+
+// Immediately show any reveal elements already in view on load
+window.addEventListener('load', () => {
+  reveals.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible');
+    }
+  });
+});
+
+// Waitlist
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycby10T0SfN8gsgLywzyEoj_AL5BV3eMvbioJqBUSfuNaRCQx4ZBDs9QPaPqbc0BMFv4B/exec';
+
+
+// ===== POPUP LOGIC =====
+let popupData = { email: '', role: '', events: '', pain: '', pricing: '', freeText: '' };
+let currentScreen = 0;
+
+function openPopup(email) {
+  popupData.email = email;
+  document.getElementById('popupOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  showScreen(0);
+}
+
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function showScreen(n) {
+  document.querySelectorAll('.popup-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + n).classList.add('active');
+  // Update step dots
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById('dot' + i);
+    if (!dot) continue;
+    dot.classList.remove('active', 'done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+  }
+  currentScreen = n;
+}
+
+function nextScreen(n) {
+  showScreen(n);
+}
+
+function selectOption(field, value, el) {
+  // Deselect siblings
+  el.closest('.popup-options').querySelectorAll('.popup-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  popupData[field] = value;
+  // Hide other input if visible and another option chosen
+  const otherWrap = document.getElementById('otherInputWrap');
+  if (otherWrap) otherWrap.style.display = 'none';
+  // Enable next button
+  const btn = document.getElementById('nextBtn' + currentScreen);
+  if (btn) btn.disabled = false;
+}
+
+function selectOther(el) {
+  // Select the Other pill
+  el.closest('.popup-options').querySelectorAll('.popup-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  popupData.role = 'Other';
+  // Show the text input
+  const otherWrap = document.getElementById('otherInputWrap');
+  if (otherWrap) {
+    otherWrap.style.display = 'block';
+    document.getElementById('otherRoleInput').focus();
+  }
+  // Enable next (they can proceed even without typing)
+  const btn = document.getElementById('nextBtn0');
+  if (btn) btn.disabled = false;
+}
+
+function updateOtherRole(val) {
+  popupData.role = val.trim() ? val.trim() : 'Other';
+}
+
+function skipToEnd() {
+  submitPopupData();
+  showScreen('Success');
+  document.querySelectorAll('.popup-step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+}
+
+async function submitPopup() {
+  popupData.freeText = document.getElementById('freeText').value;
+  popupData.pricing = popupData.pricing || '';
+  await submitPopupData();
+  // Show success screen
+  document.querySelectorAll('.popup-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screenSuccess').classList.add('active');
+  document.querySelectorAll('.popup-step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+  // Keep open so user can share
+}
+
+async function submitPopupData() {
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: popupData.email,
+        role: popupData.role,
+        events: popupData.events,
+        pain: popupData.pain,
+        pricing: popupData.pricing,
+        freeText: popupData.freeText,
+        source: 'Waitlist + Survey'
+      })
+    });
+  } catch(e) {
+    // Silent fail — no-cors mode
+  }
+}
+
+// Close on overlay click
+const _overlay = document.getElementById('popupOverlay');
+if (_overlay) {
+  _overlay.addEventListener('click', function(e) {
+    if (e.target === this) closePopup();
+  });
+}
+
+// Waitlist submit — show confirmation then open discovery popup
+async function handleWaitlist(e) {
+  e.preventDefault();
+  const email = document.getElementById('waitlistEmail').value;
+  if (!email) return;
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  // Fire & forget to Google Sheet
+  try {
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, source: 'Landing Page' })
+    });
+  } catch(e) {}
+
+  // Show inline confirmation
+  const wForm = document.querySelector('.waitlist-form');
+  const wSuccess = document.getElementById('waitlistSuccess');
+  if (wForm) wForm.style.display = 'none';
+  if (wSuccess) wSuccess.style.display = 'block';
+
+  // Open discovery popup after short delay
+  setTimeout(() => openPopup(email), 700);
+}
+
+
+
+function copyShareLink() {
+  const input = document.getElementById('shareLink');
+  const btn = document.getElementById('shareCopyBtn');
+  navigator.clipboard.writeText(input.value).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy link';
+      btn.classList.remove('copied');
+    }, 2500);
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy link';
+      btn.classList.remove('copied');
+    }, 2500);
+  });
+}
+
+// Contact
+function handleContact(e) {
+  e.preventDefault();
+  e.target.innerHTML = '<p style="color:var(--accent-dark);font-size:16px;font-weight:500">✓ Message sent! We will be in touch within 24 hours.</p>';
+}
+</script>
+
+<!-- ONBOARDING POPUP -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <div class="popup-header">
+      <div class="popup-step-bar">
+        <div class="popup-step-dot active" id="dot0"></div>
+        <div class="popup-step-dot" id="dot1"></div>
+        <div class="popup-step-dot" id="dot2"></div>
+        <div class="popup-step-dot" id="dot3"></div>
+        <div class="popup-step-dot" id="dot4"></div>
+      </div>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+    </div>
+    <div class="popup-body">
+
+      <!-- SCREEN 0: Role -->
+      <div class="popup-screen active" id="screen0">
+        <div class="popup-eyebrow">Quick intro · 1 of 4</div>
+        <div class="popup-title">What's your role?</div>
+        <div class="popup-sub">Helps us understand who we're building for.</div>
+        <div class="popup-options" id="roleOptions">
+          <div class="popup-option" onclick="selectOption('role', 'Sales Rep / AE', this)">
+            <span class="popup-option-icon">💼</span>
+            <span class="popup-option-label">Sales Rep / Account Executive</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('role', 'Head of Sales / VP Sales', this)">
+            <span class="popup-option-icon">🎯</span>
+            <span class="popup-option-label">Head of Sales / VP Sales</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('role', 'Event / Marketing Manager', this)">
+            <span class="popup-option-icon">📣</span>
+            <span class="popup-option-label">Event / Marketing Manager</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('role', 'RevOps / Operations', this)">
+            <span class="popup-option-icon">⚙️</span>
+            <span class="popup-option-label">RevOps / Operations</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('role', 'Founder / CEO', this)">
+            <span class="popup-option-icon">🚀</span>
+            <span class="popup-option-label">Founder / CEO</span>
+          </div>
+          <div class="popup-option" onclick="selectOther(this)">
+            <span class="popup-option-icon">👤</span>
+            <span class="popup-option-label">Other</span>
+          </div>
+        </div>
+        <div id="otherInputWrap" style="display:none;margin-bottom:16px;">
+          <input
+            type="text"
+            id="otherRoleInput"
+            class="popup-textarea"
+            placeholder="Please specify your role…"
+            style="min-height:unset;height:44px;padding:10px 16px;margin-bottom:0;"
+            oninput="updateOtherRole(this.value)"
+          />
+        </div>
+        <div class="popup-nav">
+          <button class="popup-btn-next" id="nextBtn0" onclick="nextScreen(1)" disabled>Continue →</button>
+          <button class="popup-skip" onclick="skipToEnd()">Skip all</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 1: Events per year -->
+      <div class="popup-screen" id="screen1">
+        <div class="popup-eyebrow">Quick intro · 2 of 4</div>
+        <div class="popup-title">How many trade shows or events does your team attend per year?</div>
+        <div class="popup-sub">We want to understand your event frequency.</div>
+        <div class="popup-options" id="eventsOptions">
+          <div class="popup-option" onclick="selectOption('events', '1–3 events', this)">
+            <span class="popup-option-icon">🗓️</span>
+            <span class="popup-option-label">1–3 events — we're selective</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('events', '4–10 events', this)">
+            <span class="popup-option-icon">📅</span>
+            <span class="popup-option-label">4–10 events — fairly active</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('events', '10–25 events', this)">
+            <span class="popup-option-icon">🗺️</span>
+            <span class="popup-option-label">10–25 events — events are core to our GTM</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('events', '25+ events', this)">
+            <span class="popup-option-icon">✈️</span>
+            <span class="popup-option-label">25+ events — we live on the road</span>
+          </div>
+        </div>
+        <div class="popup-nav">
+          <button class="popup-btn-back" onclick="nextScreen(0)">← Back</button>
+          <button class="popup-btn-next" id="nextBtn1" onclick="nextScreen(2)" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: Biggest pain -->
+      <div class="popup-screen" id="screen2">
+        <div class="popup-eyebrow">Quick intro · 3 of 4</div>
+        <div class="popup-title">What's your biggest post-event headache right now?</div>
+        <div class="popup-sub">Pick your main pain — we want to solve it first.</div>
+        <div class="popup-options" id="painOptions">
+          <div class="popup-option" onclick="selectOption('pain', 'Slow follow-up', this)">
+            <span class="popup-option-icon">⏰</span>
+            <span class="popup-option-label">Follow-ups are too slow — leads go cold</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('pain', 'Generic messages', this)">
+            <span class="popup-option-icon">📧</span>
+            <span class="popup-option-label">Follow-ups are too generic — no personalisation</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('pain', 'Lost context', this)">
+            <span class="popup-option-icon">🧠</span>
+            <span class="popup-option-label">We lose the context from conversations after the event</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('pain', 'CRM chaos', this)">
+            <span class="popup-option-icon">📊</span>
+            <span class="popup-option-label">Getting leads into the CRM is a nightmare</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('pain', 'No ROI visibility', this)">
+            <span class="popup-option-icon">💸</span>
+            <span class="popup-option-label">We can't tell if events are actually worth the spend</span>
+          </div>
+        </div>
+        <div class="popup-nav">
+          <button class="popup-btn-back" onclick="nextScreen(1)">← Back</button>
+          <button class="popup-btn-next" id="nextBtn2" onclick="nextScreen(3)" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: Pricing interest -->
+      <div class="popup-screen" id="screen3">
+        <div class="popup-eyebrow">Quick intro · 4 of 5</div>
+        <div class="popup-title">Which plan fits what you're looking for?</div>
+        <div class="popup-sub">No commitment — this just helps us understand where MeetSend fits for your team.</div>
+        <div class="popup-options" id="pricingOptions">
+          <div class="popup-option" onclick="selectOption('pricing', 'Solo £29/mo — just me', this)">
+            <span class="popup-option-icon">🌱</span>
+            <div style="flex:1">
+              <div class="popup-option-label" style="font-weight:500">Solo · £29/mo</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px">1 user · 50 leads/month · full AI follow-ups</div>
+            </div>
+          </div>
+          <div class="popup-option" onclick="selectOption('pricing', 'Starter £99/mo — small team', this)">
+            <span class="popup-option-icon">👥</span>
+            <div style="flex:1">
+              <div class="popup-option-label" style="font-weight:500">Starter · £99/mo</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Up to 3 users · 200 leads/month · CRM export</div>
+            </div>
+          </div>
+          <div class="popup-option" onclick="selectOption('pricing', 'Growth £249/mo — active sales team', this)">
+            <span class="popup-option-icon">📈</span>
+            <div style="flex:1">
+              <div class="popup-option-label" style="font-weight:500">Growth · £249/mo</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Up to 10 users · 500 leads/month · CRM sync</div>
+            </div>
+            <span style="font-size:10px;background:var(--tag);color:var(--tag-text);padding:2px 8px;border-radius:100px;font-weight:500;white-space:nowrap">Popular</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('pricing', 'Enterprise — custom pricing', this)">
+            <span class="popup-option-icon">🏢</span>
+            <div style="flex:1">
+              <div class="popup-option-label" style="font-weight:500">Enterprise · Custom</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Unlimited · White-label · Dedicated support</div>
+            </div>
+          </div>
+          <div class="popup-option" onclick="selectOption('pricing', 'Not sure yet', this)">
+            <span class="popup-option-icon">🤔</span>
+            <div class="popup-option-label">Not sure yet — depends on what it does</div>
+          </div>
+        </div>
+        <div class="popup-nav">
+          <button class="popup-btn-back" onclick="nextScreen(2)">← Back</button>
+          <button class="popup-btn-next" id="nextBtn3" onclick="nextScreen(4)" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: Open text -->
+      <div class="popup-screen" id="screen4">
+        <div class="popup-eyebrow">Quick intro · 5 of 5</div>
+        <div class="popup-title">Anything else you want us to know?</div>
+        <div class="popup-sub">What would make MeetSend a no-brainer for you? We read every single response personally.</div>
+        <textarea class="popup-textarea" id="freeText" placeholder="e.g. We exhibit at SaaStr every year and our follow-up rate is embarrassingly low. We'd pay for anything that gets us to 80% follow-up within 24hrs..."></textarea>
+        <div class="popup-nav">
+          <button class="popup-btn-back" onclick="nextScreen(3)">← Back</button>
+          <button class="popup-btn-next" onclick="submitPopup()">Submit →</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="popup-screen" id="screenSuccess">
+        <div class="popup-success">
+          <span class="popup-success-icon">🎉</span>
+          <div class="popup-success-title">You're in. Thank you.</div>
+          <div class="popup-success-sub">Your responses help us build something that actually solves the problem. We'll be in touch personally — not with a newsletter blast.</div>
+          <div class="popup-success-badge">✓ Founding member confirmed</div>
+          <div class="popup-share-wrap">
+            <p class="popup-share-label">Know someone who'd find this useful?</p>
+            <div class="popup-share-row">
+              <input type="text" class="popup-share-input" id="shareLink" value="https://meetsend.ai" readonly onclick="this.select()" />
+              <button class="popup-share-btn" id="shareCopyBtn" onclick="copyShareLink()">Copy link</button>
+            </div>
+            <div class="popup-share-or">or share directly</div>
+            <div class="popup-share-icons">
+              <a class="popup-share-icon-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fmeetsend.ai" target="_blank" title="Share on LinkedIn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                LinkedIn
+              </a>
+              <a class="popup-share-icon-btn" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fmeetsend.ai&text=Just%20joined%20the%20waitlist%20for%20MeetSend%20AI%20%E2%80%94%20turns%20trade%20show%20conversations%20into%20personalised%20follow-ups%20automatically%20%F0%9F%9A%80" target="_blank" title="Share on X">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.736-8.858L1.254 2.25H8.08l4.261 5.638 5.903-5.638zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                X / Twitter
+              </a>
+              <a class="popup-share-icon-btn" href="https://wa.me/?text=Just%20joined%20the%20waitlist%20for%20MeetSend%20AI%20%E2%80%94%20it%20turns%20trade%20show%20conversations%20into%20personalised%20follow-ups%20automatically.%20Worth%20a%20look%3A%20https%3A%2F%2Fmeetsend.ai" target="_blank" title="Share on WhatsApp">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></
