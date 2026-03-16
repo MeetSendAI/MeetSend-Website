@@ -2287,23 +2287,24 @@ async function submitPopup() {
 
 async function submitPopupData() {
   try {
-    const params = new URLSearchParams();
-    params.append('firstName', popupData.firstName || '');
-    params.append('lastName', popupData.lastName || '');
-    params.append('email', popupData.email || '');
-    params.append('role', popupData.role || '');
-    params.append('events', popupData.events || '');
-    params.append('pain', popupData.pain || '');
-    params.append('pricing', popupData.pricing || '');
-    params.append('freeText', popupData.freeText || '');
-    params.append('source', 'Waitlist + Survey');
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: params
+    const params = new URLSearchParams({
+      firstName: popupData.firstName || '',
+      lastName:  popupData.lastName  || '',
+      email:     popupData.email     || '',
+      role:      popupData.role      || '',
+      events:    popupData.events    || '',
+      pain:      popupData.pain      || '',
+      pricing:   popupData.pricing   || '',
+      freeText:  popupData.freeText  || '',
+      source:    'Waitlist + Survey'
+    });
+    // Use GET — Apps Script handles redirects cleanly, no CORS issues
+    await fetch(SHEET_URL + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'no-cors'
     });
   } catch(e) {
-    // Silent fail — no-cors mode
+    // Silent fail
   }
 }
 
