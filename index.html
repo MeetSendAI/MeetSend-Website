@@ -838,11 +838,19 @@ h2 em { font-style: italic; font-weight: 300; color: var(--muted); }
 
 .waitlist-form {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   max-width: 480px;
   margin: 0 auto;
-  flex-wrap: wrap;
-  justify-content: center;
+}
+
+.waitlist-name-row {
+  display: flex;
+  gap: 12px;
+}
+
+.waitlist-name-row .waitlist-input {
+  min-width: 0;
 }
 
 .waitlist-input {
@@ -1718,7 +1726,8 @@ footer {
 </section>
 
 <!-- FEATURES -->
-<section id="features">
+<div id="features" style="position:relative;top:-80px;visibility:hidden;"></div>
+<section id="features-section">
   <div class="section-inner">
     <div class="section-label reveal">Features</div>
     <h2 class="reveal">Everything your sales team<br><em>actually needs.</em></h2>
@@ -1865,6 +1874,10 @@ footer {
   <h2 class="reveal" style="color:var(--ink);max-width:700px;margin:0 auto 16px">Be first.<br>Shape the product.</h2>
   <p class="waitlist-sub reveal">Join the founding user community. Early members get locked-in pricing, direct access to the founder, and help shape what MeetSend becomes.</p>
   <form class="waitlist-form reveal" onsubmit="handleWaitlist(event)">
+    <div class="waitlist-name-row">
+      <input type="text" class="waitlist-input" placeholder="First name" required id="waitlistFirstName">
+      <input type="text" class="waitlist-input" placeholder="Last name" required id="waitlistLastName">
+    </div>
     <input type="email" class="waitlist-input" placeholder="your@email.com" required id="waitlistEmail">
     <button type="submit" class="btn-waitlist">Join Waitlist →</button>
   </form>
@@ -2181,6 +2194,8 @@ if (_overlay) {
 async function handleWaitlist(e) {
   e.preventDefault();
   const email = document.getElementById('waitlistEmail').value;
+  const firstName = document.getElementById('waitlistFirstName').value;
+  const lastName = document.getElementById('waitlistLastName').value;
   if (!email) return;
   const btn = e.target.querySelector('button[type="submit"]');
   btn.textContent = 'Submitting...';
@@ -2192,7 +2207,7 @@ async function handleWaitlist(e) {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, source: 'Landing Page' })
+      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, source: 'Landing Page' })
     });
   } catch(e) {}
 
@@ -2309,6 +2324,10 @@ async function handleContact(e) {
           <div class="popup-option" onclick="selectOption('role', 'Founder / CEO', this)">
             <span class="popup-option-icon">🚀</span>
             <span class="popup-option-label">Founder / CEO</span>
+          </div>
+          <div class="popup-option" onclick="selectOption('role', 'Client Engineer', this)">
+            <span class="popup-option-icon">💻</span>
+            <span class="popup-option-label">Client Engineer</span>
           </div>
           <div class="popup-option" onclick="selectOther(this)">
             <span class="popup-option-icon">👤</span>
