@@ -61,6 +61,10 @@ body {
 body:has(a:hover) .cursor, body:has(button:hover) .cursor { transform: translate(-50%, -50%) scale(2); background: var(--accent); }
 body:has(a:hover) .cursor-ring, body:has(button:hover) .cursor-ring { width: 60px; height: 60px; opacity: 0.2; }
 
+@media (hover: none), (pointer: coarse) {
+  .cursor, .cursor-ring { display: none !important; }
+}
+
 /* NAV */
 nav {
   position: fixed;
@@ -1857,7 +1861,7 @@ footer {
           <div class="contact-icon">✉️</div>
           <div>
             <div class="contact-item-title">Email</div>
-            <div class="contact-item-val"><a href="mailto:hello&#64;meetsend.ai" style="color:inherit;text-decoration:none;">hello&#64;meetsend.ai</a></div>
+            <div class="contact-item-val"><a href="/cdn-cgi/l/email-protection#d0b8b5bcbcbff6f3e6e4ebbdb5b5a4a3b5beb4feb1b9" style="color:inherit;text-decoration:none;">hello&#64;meetsend.ai</a></div>
           </div>
         </div>
         <div class="contact-item reveal">
@@ -1925,13 +1929,15 @@ footer {
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Custom cursor — guarded for mobile/null safety
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 let mx = 0, my = 0, rx = 0, ry = 0;
 
-if (cursor && ring) {
+const isTouchDevice = () => window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+if (cursor && ring && !isTouchDevice()) {
   document.addEventListener('mousemove', e => {
     mx = e.clientX; my = e.clientY;
     cursor.style.left = mx + 'px';
@@ -2426,13 +2432,4 @@ async function handleContact(e) {
             </div>
           </div>
           <button class="popup-submit-another" onclick="resetPopup()">↩ Submit another response</button>
-          <button class="popup-close-final" onclick="closePopup()">Close</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+   
