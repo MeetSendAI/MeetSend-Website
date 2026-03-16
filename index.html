@@ -2160,6 +2160,7 @@ window.addEventListener('load', () => {
 
 // Waitlist
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0aHucGn0NiGyJCcSisXbkgppg68VV0fpqjaPDZ8pPvGe3SIG6IEWTFsuqpCQsAbJi/exec';
+const CONTACT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbz9sbogtzXkKeELS-aqhWmKWujZlnKOUqfH0MkZRBwpze7X-sZVhBbuuiJJ5kWGDVET/exec';
 
 
 // ===== POPUP LOGIC =====
@@ -2359,30 +2360,23 @@ async function handleContact(e) {
   const btn = form.querySelector('.btn-contact');
   const inputs = form.querySelectorAll('input, textarea');
 
+  const name    = inputs[0].value;
+  const email   = inputs[1].value;
+  const company = inputs[2].value;
+  const message = inputs[3].value;
+
   btn.textContent = 'Sending...';
   btn.disabled = true;
 
   try {
-    const res = await fetch('https://api.web3forms.com/submit', {
+    fetch(CONTACT_SHEET_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        access_key: 'c2e7ab12-e061-444e-98da-84896994c7e3',
-        name:    inputs[0].value,
-        email:   inputs[1].value,
-        company: inputs[2].value,
-        message: inputs[3].value,
-        subject: 'New MeetSend enquiry — ' + inputs[0].value + ' from ' + inputs[2].value
-      })
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ name, email, company, message, source: 'Contact Form' })
     });
-
-    if (res.ok) {
-      form.innerHTML = '<p style="color:var(--accent-dark);font-size:16px;font-weight:500;line-height:1.7">\u2713 Message received.<br>We\'ll be in touch within 24 hours.</p>';
-    } else {
-      btn.textContent = 'Send Message →';
-      btn.disabled = false;
-      alert('Something went wrong — please email hello@meetsend.ai directly.');
-    }
+    // Show success immediately — no-cors means we can't read the response
+    form.innerHTML = '<p style="color:var(--accent-dark);font-size:16px;font-weight:500;line-height:1.7">✓ Message received.<br>We\'ll be in touch within 48 hours.</p>';
   } catch {
     btn.textContent = 'Send Message →';
     btn.disabled = false;
