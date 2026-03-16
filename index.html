@@ -2283,26 +2283,51 @@ async function submitPopup() {
 }
 
 async function submitPopupData() {
+  const data = {
+    firstName: popupData.firstName || '',
+    lastName:  popupData.lastName  || '',
+    email:     popupData.email     || '',
+    role:      popupData.role      || '',
+    events:    popupData.events    || '',
+    pain:      popupData.pain      || '',
+    pricing:   popupData.pricing   || '',
+    freeText:  popupData.freeText  || '',
+    source:    'Waitlist + Survey'
+  };
+
+  // Track 1: Web3Forms — sends email to joana@meetsend.ai with all signup data (reliable, no CORS)
   try {
-    const params = new URLSearchParams({
-      firstName: popupData.firstName || '',
-      lastName:  popupData.lastName  || '',
-      email:     popupData.email     || '',
-      role:      popupData.role      || '',
-      events:    popupData.events    || '',
-      pain:      popupData.pain      || '',
-      pricing:   popupData.pricing   || '',
-      freeText:  popupData.freeText  || '',
-      source:    'Waitlist + Survey'
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: 'c2e7ab12-e061-444e-98da-84896994c7e3',
+        subject: 'New Waitlist Signup — ' + data.firstName + ' ' + data.lastName,
+        from_name: 'MeetSend Waitlist',
+        email: data.email,
+        message:
+          'First Name: ' + data.firstName + '\n' +
+          'Last Name: ' + data.lastName + '\n' +
+          'Email: ' + data.email + '\n' +
+          'Role: ' + data.role + '\n' +
+          'Events/Year: ' + data.events + '\n' +
+          'Pain Points: ' + data.pain + '\n' +
+          'Pricing Interest: ' + data.pricing + '\n' +
+          'Free Text: ' + data.freeText + '\n' +
+          'Source: ' + data.source
+      })
     });
-    // Use GET — Apps Script handles redirects cleanly, no CORS issues
-    await fetch(SHEET_URL + '?' + params.toString(), {
-      method: 'GET',
-      mode: 'no-cors'
-    });
-  } catch(e) {
-    // Silent fail
-  }
+  } catch(e) {}
+
+  // Track 2: Apps Script via hidden iframe — bypasses fetch CORS restrictions
+  try {
+    const params = new URLSearchParams(data);
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = SHEET_URL + '?' + params.toString();
+    document.body.appendChild(iframe);
+    setTimeout(() => { try { document.body.removeChild(iframe); } catch(e) {} }, 5000);
+  } catch(e) {}
 }
 
 // Close on overlay click
@@ -2324,20 +2349,29 @@ async function handleWaitlist(e) {
   btn.textContent = 'Submitting...';
   btn.disabled = true;
 
-  // Immediately write name + email to sheet — captures lead even if popup is closed
+  // Immediately capture name + email via both Web3Forms (email) and iframe (sheet)
   try {
-    const params = new URLSearchParams({
-      firstName: firstName || '',
-      lastName:  lastName  || '',
-      email:     email     || '',
-      role:      '',
-      events:    '',
-      pain:      '',
-      pricing:   '',
-      freeText:  '',
-      source:    'Landing Page'
+    // Web3Forms notification email
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: 'c2e7ab12-e061-444e-98da-84896994c7e3',
+        subject: 'New Waitlist Signup — ' + (firstName||'') + ' ' + (lastName||''),
+        from_name: 'MeetSend Waitlist',
+        email: email,
+        message: 'First Name: ' + (firstName||'') + '\nLast Name: ' + (lastName||'') + '\nEmail: ' + email + '\nSource: Landing Page'
+      })
     });
-    fetch(SHEET_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
+  } catch(err) {}
+  // Iframe to Apps Script sheet
+  try {
+    const iParams = new URLSearchParams({ firstName: firstName||'', lastName: lastName||'', email: email||'', role:'', events:'', pain:'', pricing:'', freeText:'', source:'Landing Page' });
+    const iFrame = document.createElement('iframe');
+    iFrame.style.display = 'none';
+    iFrame.src = SHEET_URL + '?' + iParams.toString();
+    document.body.appendChild(iFrame);
+    setTimeout(() => { try { document.body.removeChild(iFrame); } catch(e) {} }, 5000);
   } catch(err) {}
 
   // Show inline confirmation
@@ -2389,7 +2423,7 @@ async function handleContact(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        access_key: '68f2be80-b61d-4ddb-bcb2-1500639102b6',
+        access_key: 'c2e7ab12-e061-444e-98da-84896994c7e3',
         name:    inputs[0].value,
         email:   inputs[1].value,
         company: inputs[2].value,
