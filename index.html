@@ -1039,7 +1039,13 @@ footer {
 @media (max-width: 768px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
-  .nav-mobile { display: block; font-size: 20px; cursor: none; background: none; border: none; }
+  .nav-links { display: none; }
+  .nav-mobile { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; font-size: 22px; cursor: pointer; background: none; border: none; padding: 0; color: var(--ink); z-index: 200; position: relative; }
+  .nav-dropdown { display: none; position: fixed; top: 64px; left: 0; right: 0; background: rgba(249,246,240,0.98); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-direction: column; padding: 16px 20px 24px; z-index: 99; gap: 0; }
+  .nav-dropdown.open { display: flex; }
+  .nav-dropdown li { list-style: none; }
+  .nav-dropdown li a { display: block; padding: 14px 0; font-size: 16px; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--border); font-weight: 400; }
+  .nav-dropdown li:last-child a { border-bottom: none; background: var(--ink); color: var(--bg); text-align: center; padding: 14px 22px; border-radius: 100px; margin-top: 12px; font-weight: 500; }
   section { padding: 80px 20px; }
   .hero { padding: 100px 20px 60px; }
   .problem-grid, .solution-flow, .features-grid, .pricing-grid, .contact-grid, .routing-grid { grid-template-columns: 1fr; }
@@ -1499,7 +1505,15 @@ footer {
     <li><a href="#contact">Contact</a></li>
     <li><a href="#waitlist" class="nav-cta">Join Waitlist</a></li>
   </ul>
-  <button class="nav-mobile">☰</button>
+  <button class="nav-mobile" id="navToggle" onclick="toggleMobileNav()" aria-label="Open menu">☰</button>
+  <ul class="nav-dropdown" id="navDropdown">
+    <li><a href="#problem" onclick="closeMobileNav()">Problem</a></li>
+    <li><a href="#solution" onclick="closeMobileNav()">Solution</a></li>
+    <li><a href="#features" onclick="closeMobileNav()">Features</a></li>
+    <li><a href="#pricing" onclick="closeMobileNav()">Pricing</a></li>
+    <li><a href="#contact" onclick="closeMobileNav()">Contact</a></li>
+    <li><a href="#waitlist" onclick="closeMobileNav()">Join Waitlist</a></li>
+  </ul>
 </nav>
 
 <!-- HERO -->
@@ -1958,6 +1972,30 @@ if (cursor && ring && !isTouchDevice()) {
 window.addEventListener('scroll', () => {
   const nav = document.getElementById('nav');
   if (nav) nav.classList.toggle('scrolled', window.scrollY > 20);
+
+function toggleMobileNav() {
+  const dropdown = document.getElementById('navDropdown');
+  const btn = document.getElementById('navToggle');
+  const isOpen = dropdown.classList.toggle('open');
+  btn.textContent = isOpen ? '✕' : '☰';
+}
+
+function closeMobileNav() {
+  const dropdown = document.getElementById('navDropdown');
+  const btn = document.getElementById('navToggle');
+  dropdown.classList.remove('open');
+  btn.textContent = '☰';
+}
+
+document.addEventListener('click', function(e) {
+  const dropdown = document.getElementById('navDropdown');
+  const btn = document.getElementById('navToggle');
+  if (dropdown && dropdown.classList.contains('open')) {
+    if (!dropdown.contains(e.target) && e.target !== btn) {
+      closeMobileNav();
+    }
+  }
+});
 });
 
 // Reveal on scroll
