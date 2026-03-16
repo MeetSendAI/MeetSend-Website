@@ -2159,7 +2159,7 @@ window.addEventListener('load', () => {
 });
 
 // Waitlist
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycby10T0SfN8gsgLywzyEoj_AL5BV3eMvbioJqBUSfuNaRCQx4ZBDs9QPaPqbc0BMFv4B/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0aHucGn0NiGyJCcSisXbkgppg68VV0fpqjaPDZ8pPvGe3SIG6IEWTFsuqpCQsAbJi/exec';
 
 
 // ===== POPUP LOGIC =====
@@ -2200,12 +2200,9 @@ function resetPopup() {
   document.querySelectorAll('[id^="nextBtn"]').forEach(b => b.disabled = true);
   // Reset back to screen 0 for next time
   showScreen(0);
-  // Close the popup and scroll to waitlist
+  // Close the popup and go to waitlist
   closePopup();
-  const waitlistSection = document.getElementById('waitlist');
-  if (waitlistSection) {
-    setTimeout(() => waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-  }
+  window.location.href = 'https://meetsend.ai/#waitlist';
 }
 
 function showScreen(n) {
@@ -2268,8 +2265,8 @@ function updateOtherRole(val) {
   popupData.role = val.trim() ? val.trim() : 'Other';
 }
 
-function skipToEnd() {
-  submitPopupData();
+async function skipToEnd() {
+  await submitPopupData();
   showScreen('Success');
   document.querySelectorAll('.popup-step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
 }
@@ -2316,7 +2313,7 @@ if (_overlay) {
   });
 }
 
-// Waitlist submit — show confirmation then open discovery popup
+// Waitlist submit — immediately record to sheet, then open popup for survey
 async function handleWaitlist(e) {
   e.preventDefault();
   const email = document.getElementById('waitlistEmail').value;
@@ -2327,13 +2324,29 @@ async function handleWaitlist(e) {
   btn.textContent = 'Submitting...';
   btn.disabled = true;
 
+  // Immediately write name + email to sheet — captures lead even if popup is closed
+  try {
+    const params = new URLSearchParams({
+      firstName: firstName || '',
+      lastName:  lastName  || '',
+      email:     email     || '',
+      role:      '',
+      events:    '',
+      pain:      '',
+      pricing:   '',
+      freeText:  '',
+      source:    'Landing Page'
+    });
+    fetch(SHEET_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
+  } catch(err) {}
+
   // Show inline confirmation
   const wForm = document.querySelector('.waitlist-form');
   const wSuccess = document.getElementById('waitlistSuccess');
   if (wForm) wForm.style.display = 'none';
   if (wSuccess) wSuccess.style.display = 'block';
 
-  // Open discovery popup — full row written to sheet when survey completes
+  // Open discovery popup — will write a second complete row when survey finishes
   setTimeout(() => openPopup(email, firstName, lastName), 700);
 }
 
